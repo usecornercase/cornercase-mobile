@@ -59,9 +59,9 @@ Topics, in `design/releases/`:
 ## App Store Connect
 
 - **The app**: "Cornercase remote", Apple ID 6835431973, SKU `cornercase-mobile`, primary language en-US, bundle ID `dev.usecornercase.mobile`, team `22FWTVV94S` (the paid Apple Developer Program). The name under the icon is "Cornercase" (decided by the user on 2026-11-16): `CFBundleDisplayName` in `project.yml` › `info.properties` on iOS, `app_name` and `main_activity_title` in `res/values/strings.xml` on Android. `productName` stays "cornercase", since it also names the binaries and the bundles.
-- **The privacy policy** is `PRIVACY.md`. External TestFlight testing and the App Store need it at a public URL: `https://miguelhang.github.io/cornercase-mobile/privacy/`, the site's (The site).
-- **The support page** is `SUPPORT.md`, at `https://miguelhang.github.io/cornercase-mobile/support/`, the Support URL that the App Store asks for with every version.
-- **The user puts both URLs into App Store Connect by hand**: no script or workflow writes to it. They change with the move to usecornercase (The repository's URLs).
+- **The privacy policy** is `PRIVACY.md`. External TestFlight testing and the App Store need it at a public URL: `https://usecornercase.github.io/cornercase-mobile/privacy/`, the site's (The site).
+- **The support page** is `SUPPORT.md`, at `https://usecornercase.github.io/cornercase-mobile/support/`, the Support URL that the App Store asks for with every version.
+- **The user puts both URLs into App Store Connect by hand**: no script or workflow writes to it. They change again with the custom domain (The repository's URLs).
 - **The listing** lives in `store/app-store/`, in a form the API applies as it is, with its `README.md` saying how and what is still missing (The App Store listing).
 
 ## App Review
@@ -111,13 +111,14 @@ Topics, in `design/releases/`:
   - Concurrency `pages` without cancelling: a deploy that has started finishes, and the next one waits.
   - No `.nojekyll`: Jekyll does not run when Actions deploys. `upload-pages-artifact` leaves out hidden files, and the site has none.
   - The Pages actions are at their latest major versions on 2026-11-17 (`configure-pages` 6, `upload-pages-artifact` 5, `deploy-pages` 5); Dependabot updates them with the rest.
-- **Only `main` deploys**: the `github-pages` environment that GitHub creates with Pages allows the default branch only, so a pull request cannot publish, and the first deploy is the merge's. Pages was turned on before that merge, on 2026-11-17, through the API (`POST /repos/{owner}/{repo}/pages` with `build_type: workflow`, the Actions source, authorised by the user), since the deploy fails while Pages is off. The site is `https://miguelhang.github.io/cornercase-mobile/`.
+- **Only `main` deploys**: the `github-pages` environment that GitHub creates with Pages allows the default branch only, so a pull request cannot publish, and the first deploy is the merge's. Pages was turned on before that merge, on 2026-11-17, through the API (`POST /repos/{owner}/{repo}/pages` with `build_type: workflow`, the Actions source, authorised by the user), since the deploy fails while Pages is off. The site is `https://usecornercase.github.io/cornercase-mobile/`.
 
 ## The repository's URLs
 
-- **The repository lives at `MiguelHang/cornercase-mobile` for now and moves to the usecornercase organisation later**, so nothing names it: `README.md`, `CHANGELOG.md` and `PRIVACY.md` link relatively (`PRIVACY.md`, `../../releases/latest`, `../../issues`), as do `SUPPORT.md` and `site/index.md`; `release.yml` uses `github.repository` and `gh`'s defaults, and the site's script `GITHUB_REPOSITORY`.
-- **Absolute URLs to the repository: none** (`grep -rn "MiguelHang/cornercase-mobile" --exclude-dir=node_modules --exclude-dir=docs .` on 2026-11-17, which finds only this file).
-- **The site's URLs name the owner, here and in the App Store listing**: `https://miguelhang.github.io/cornercase-mobile/privacy/` and `/support/`, written into App Store Connect by hand, and into `store/app-store/app-info.json` and `version.json`, which `scripts/store.test.ts` ties to these two. The move changes their host to `usecornercase.github.io` and keeps their paths: change them here, in the listing and in App Store Connect then, and check that they answer.
+- **The repository lives at `usecornercase/cornercase-mobile`**: it moved there from `MiguelHang/cornercase-mobile` on 2026-11-23, before the first App Store submission (decided by the user). Nothing names it: `README.md`, `CHANGELOG.md` and `PRIVACY.md` link relatively (`PRIVACY.md`, `../../releases/latest`, `../../issues`), as do `SUPPORT.md` and `site/index.md`; `release.yml` uses `github.repository` and `gh`'s defaults, and the site's script `GITHUB_REPOSITORY`. Pages and the three Android secrets moved with it; the local remote is changed by hand.
+- **Absolute URLs to the repository: none** (`git grep -l "github.com/[A-Za-z]*/cornercase-mobile"` on 2026-11-23 finds nothing).
+- **The site's URLs name the owner, here and in the App Store listing**: `https://usecornercase.github.io/cornercase-mobile/privacy/` and `/support/`, written into App Store Connect by hand, and into `store/app-store/app-info.json` and `version.json`, which `scripts/store.test.ts` ties to these two. A move does not redirect Pages: `miguelhang.github.io/cornercase-mobile/` answered 404 right after it. So the move came before the listing went into App Store Connect.
+- **A custom domain later, `mobile.usecornercase.dev`** (decided by the user on 2026-11-23), so that the listing's URLs no longer depend on where the repository lives: a `CNAME` from `mobile` to `usecornercase.github.io` in the domain's DNS, the domain verified for the organisation, then set as the Pages site's domain with HTTPS enforced, which `.dev` requires. Once set, GitHub redirects the `github.io` URLs to it, so the listing keeps working and takes the new URLs with its next version. Not done for 0.1.0, so that the submission waits on no one's DNS. Rejected: a custom domain before the submission, for that wait.
 
 ## Checked live
 
