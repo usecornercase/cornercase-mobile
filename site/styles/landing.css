@@ -64,6 +64,12 @@
     transform 1.1s var(--expo) 0.3s;
 }
 
+.hero .apk {
+  transition:
+    opacity 0.9s var(--expo) 0.35s,
+    transform 1.1s var(--expo) 0.35s;
+}
+
 .hero__note {
   color: var(--soft);
   font-size: 15px;
@@ -223,7 +229,7 @@ main {
   display: block;
 }
 
-.get__head p {
+.get__text {
   max-width: 50ch;
   color: var(--soft);
   font-size: clamp(17px, 1.4vw, 21px);

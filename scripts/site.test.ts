@@ -337,7 +337,21 @@ describe('build with the repository', () => {
     )
     expect(textOf(page)).toContain('Coming soon on Google Play')
     expect(page).not.toMatch(/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*Google Play/)
-    expect(page).not.toMatch(/releases|\.apk/)
+  })
+
+  it('links the APK of the latest release beside each Google Play mark, saying it installs outside Google Play', () => {
+    const page = site.read('index.html')
+    const releases = [...page.matchAll(/<a href="([^"]*releases[^"]*)">([^<]*)<\/a> <span>([^<]*)<\/span>/g)]
+    expect(releases.map((match) => [match[1], match[2]])).toEqual([
+      ['https://github.com/owner/name/releases/latest', 'Android: download the APK from GitHub'],
+      ['https://github.com/owner/name/releases/latest', 'Android: download the APK from GitHub'],
+    ])
+    expect(releases.map((match) => match[3])).toEqual([
+      expect.stringContaining('installs outside Google Play'),
+      expect.stringContaining('installs outside the store'),
+    ])
+    expect(page.match(/Coming soon on/g)).toHaveLength(2)
+    expect(attributes(page, 'a').filter((href) => /releases|\.apk/.test(href))).toHaveLength(2)
   })
 
   it('serves the six screenshots and shows each on the landing', () => {

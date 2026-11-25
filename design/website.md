@@ -114,6 +114,16 @@ the new look.
   its height of clear space and nothing on it but the focus ring; the footer carries the trademark line. Google Play
   is words in a badge-shaped outline, "Coming soon on Google Play", not a link and with no Google artwork: Play is in a
   closed test, and Google's badge is for an app that is there.
+- **The APK from GitHub, under each pair of badges** (072, at the owner's request after seeing the page): "Android:
+  download the APK from GitHub", linking the repository's `releases/latest`, where `release.yml` puts the signed
+  universal APK (`design/releases.md`), with a short note that it installs outside Google Play until the app is
+  there; the closing section adds that Android asks once to allow installing apps from the browser, as `README.md`
+  says. The plan had decided the opposite, the Play mark and no link to the APK, so that the page offered only the
+  stores; the owner reversed it because Android users can install the app now, without waiting for Play's review.
+  It is a text link, smaller than the badges and below them, so the store badges stay the first way in; the link goes
+  to the release page and not to the `.apk` file, whose name changes with each version. The Play mark stays, still
+  not a link. In the hero the note is one line, and the phone's peek sits a little lower (`dy` 0.66 wide, 0.7 narrow)
+  so that it never covers it.
 
 ## The motion
 

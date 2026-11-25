@@ -36,7 +36,7 @@ function turnOf(chapter: Chapter): number {
 
 function wide(): Shots {
   return {
-    peek: { free: 'screen', rx: 38, dy: 0.62, zoom: 1.05 },
+    peek: { free: 'screen', rx: 38, dy: 0.66, zoom: 1.05 },
     front: { free: 'screen' },
     gone: { free: 'screen', zoom: 1.25, rx: 48, dy: 1.2, fade: 0 },
     enter: (chapter) => ({ free: chapter.free, ry: 8 * turnOf(chapter), rx: 2 }),
@@ -46,7 +46,7 @@ function wide(): Shots {
 
 function narrow(): Shots {
   return {
-    peek: { free: 'screen', rx: 30, dy: 0.6 },
+    peek: { free: 'screen', rx: 30, dy: 0.7 },
     front: { free: 'screen' },
     gone: { free: 'screen', zoom: 1.25, rx: 48, dy: 1.2, fade: 0 },
     enter: (chapter) => ({ free: chapter.free, focus: chapter.focus[0], ry: 4 * turnOf(chapter), rx: 2 }),

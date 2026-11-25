@@ -194,6 +194,24 @@ h3 {
   font-weight: 600;
 }
 
+.apk {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.apk a {
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
 .badges--big .store,
 .badges--big .soon {
   margin: 14px;
