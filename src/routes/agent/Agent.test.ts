@@ -721,7 +721,7 @@ describe('Agent, closing its agent', () => {
     expect(dialog(body)).toBe('Close Fix the login flow?')
     expect(body).toContain('Nothing is deleted from disk')
     expect(flat(agentSource)).toContain(
-      "{#if asking !== null} {@const pane = row.pane} <CloseConfirm plan={asking.plan} label={label(row, agents ?? [])} rechecking={asking.kind === 'rechecking'} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} /> {/if}",
+      "{#if asking !== null} {@const pane = row.pane} <CloseConfirm plan={asking.plan} label={label(row, agents ?? [])} rechecking={asking.kind === 'rechecking'} {anchor} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} /> {/if}",
     )
   })
 
@@ -730,7 +730,14 @@ describe('Agent, closing its agent', () => {
     expect(source).toContain(
       "const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)",
     )
-    expect(source).toContain('const ask = () => { if (row !== null && closable) { void closer?.ask(row) } }')
+    expect(source).toContain(
+      'const ask = (from: HTMLElement | null) => { if (row !== null && closable) { anchor = from void closer?.ask(row) } }',
+    )
+  })
+
+  it('anchors the confirmation to the Close agent that opened it', () => {
+    expect(flat(chatHeaderSource)).toContain('<div class="close" class:spoken={boxed} bind:this={closing}>')
+    expect(flat(chatHeaderSource)).toContain("busy={progress === 'checking'} onclick={() => onclose(closing)}>")
   })
 
   it('leaves the button out of sight with the large header while the phone keyboard is open', () => {

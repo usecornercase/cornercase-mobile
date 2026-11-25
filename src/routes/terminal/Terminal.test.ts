@@ -1,7 +1,8 @@
 import { render } from 'svelte/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentRow_Serialize as AgentRow, Size_Deserialize } from '../../lib/bindings'
-import { layout, WIDE } from '../../lib/layout.svelte'
+import { WIDE } from '../../lib/layout.svelte'
+import { atWidth } from '../../lib/layoutFakes'
 import { Fit, type Page } from '../../lib/terminal/fit.svelte'
 import { Keyboard, whileClosed } from '../../lib/terminal/keyboard.svelte'
 import { Opening } from '../../lib/terminal/opening'
@@ -37,15 +38,7 @@ const drawn = () =>
 
 const body = drawn()
 
-const quiet = { addEventListener: () => {}, removeEventListener: () => {} }
-
-const drawnAt = (innerWidth: number) => {
-  const stop = layout.watch({ ...quiet, innerWidth })
-  const shown = drawn()
-  stop()
-  layout.watch(quiet)()
-  return shown
-}
+const drawnAt = (innerWidth: number) => atWidth(innerWidth, drawn)
 
 const source = terminalSource.replace(/\s+/g, ' ')
 

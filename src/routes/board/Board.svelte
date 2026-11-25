@@ -71,6 +71,7 @@
   const gesture = rowGesture(platform)
 
   let swiped = $state<{ pane: number; at: number } | null>(null)
+  let anchor = $state<HTMLElement | null>(null)
 
   const placeOf = (pane: number) => shown.findIndex((item) => item.kind === 'row' && item.row.pane === pane)
 
@@ -113,7 +114,7 @@
 
   const opens = (row: Agent) => swiped?.pane === row.pane && closes(row) && closer?.offered(row) === true
 
-  const ask = (row: Agent) => {
+  const ask = (row: Agent, from: HTMLElement | null) => {
     if (closer === null || !closes(row) || !closer.offered(row)) {
       return
     }
@@ -121,6 +122,7 @@
       void tap(haptics)
     }
     shut()
+    anchor = from
     void closer.ask(row)
   }
 
@@ -190,6 +192,7 @@
       plan={asking.state.plan}
       label={label(asking.row, agents ?? [])}
       rechecking={asking.state.kind === 'rechecking'}
+      {anchor}
       oncancel={() => closer?.cancel(pane)}
       onconfirm={() => void closer?.confirm(pane)}
     />

@@ -3,6 +3,8 @@ import { render } from 'svelte/server'
 import { describe, expect, it } from 'vitest'
 import type { AgentClosing_Serialize as AgentClosing } from '../bindings'
 import { NOTHING_DELETED } from '../closeAgent.svelte'
+import { WIDE } from '../layout.svelte'
+import { atWidth } from '../layoutFakes'
 import Button from './Button.svelte'
 import CloseConfirm from './CloseConfirm.svelte'
 import CodeBox from './CodeBox.svelte'
@@ -71,7 +73,8 @@ describe('Glass as a sheet', () => {
 })
 
 describe('Sheet', () => {
-  const body = render(Sheet, { props: { label: 'Close it?', oncancel: () => {}, children: html('<p>inside</p>') } }).body
+  const sheet = () => render(Sheet, { props: { label: 'Close it?', oncancel: () => {}, children: html('<p>inside</p>') } }).body
+  const body = sheet()
 
   it('draws a named modal dialog of glass over a veil that is no target for VoiceOver', () => {
     expect(body).toMatch(
@@ -81,7 +84,31 @@ describe('Sheet', () => {
   })
 
   it('cancels on a tap outside it, on the veil', () => {
-    expect(flat(sheetSource)).toContain('aria-hidden="true" onclick={oncancel} in:veilIn out:veilOut></button>')
+    expect(flat(sheetSource)).toContain('aria-hidden="true" onclick={oncancel} in:veilIn out:veilOut ></button>')
+  })
+
+  it('cancels on Escape, from a hardware keyboard', () => {
+    expect(flat(sheetSource)).toContain("const escaped = (event: KeyboardEvent) => { if (event.key === 'Escape') { oncancel() } }")
+    expect(flat(sheetSource)).toContain('onkeydown={escaped}')
+  })
+
+  it('floats as a card with all its corners rounded in a wide window, over a clear layer that still cancels', () => {
+    const wide = atWidth(WIDE, sheet)
+    expect(wide).toMatch(
+      /<div class="layer svelte-[\w-]+ floating"><button class="scrim svelte-[\w-]+ clear" type="button" tabindex="-1" aria-hidden="true"><\/button> <div class="sheet svelte-[\w-]+ floating" role="dialog" aria-modal="true" aria-label="Close it\?" tabindex="-1"><div class="glass svelte-[\w-]+">/,
+    )
+    expect(body).not.toContain('floating')
+  })
+
+  it('places a floating card by its anchor on mount and on every resize, and rises in and fades out like a card', () => {
+    const source = flat(sheetSource)
+    expect(source).toContain('const floating = $derived(layout.wide)')
+    expect(source).toContain(
+      "const place = () => (spot = placed(from.getBoundingClientRect(), size, { width: innerWidth, height: innerHeight })) place() addEventListener('resize', place) return () => removeEventListener('resize', place)",
+    )
+    expect(source).toContain('const entering = (node: Element) => (floating ? riseIn(node) : sheetIn(node))')
+    expect(source).toContain('const leaving = (node: Element) => (floating ? fadeOut(node) : sheetOut(node))')
+    expect(source).toContain('<Glass sheet={!floating}>')
   })
 
   it('sits over the whole page, out of the screens that slide, and takes the focus', () => {
@@ -95,7 +122,12 @@ describe('Sheet', () => {
     '.scrim { position: absolute; inset: 0; padding: 0; border: 0; background: var(--veil); touch-action: none; }',
     '.sheet { position: relative; width: 100%; max-width: 520px; margin: 0 auto;',
     'padding: var(--inset-wide) var(--inset-wide) calc(env(safe-area-inset-bottom) + var(--inset-wide));',
-    '{@attach focused} in:sheetIn out:sheetOut>',
+    '{@attach focused} in:entering out:leaving >',
+    '.layer.floating { align-items: center; justify-content: center; }',
+    '.clear { background: transparent; }',
+    '.sheet.floating { width: min(360px, calc(100vw - 24px)); max-width: none; margin: 0; }',
+    '.anchored { position: fixed; }',
+    '.floating .body { padding: var(--inset-wide); }',
   ])('holds %s', (text) => {
     expect(flat(sheetSource)).toContain(text)
   })
@@ -147,7 +179,8 @@ describe('CloseConfirm', () => {
   })
 
   it('passes its buttons on to what it was given', () => {
-    expect(closeConfirmSource).toContain('<Sheet label={text.title} {oncancel}>')
+    expect(closeConfirmSource).toContain('<Sheet label={text.title} {anchor} {oncancel}>')
+    expect(closeConfirmSource).toContain('anchor = null,')
     expect(closeConfirmSource).toContain('onclick={oncancel}>Cancel</Button>')
     expect(closeConfirmSource).toContain('onclick={onconfirm}>Close</Button>')
   })

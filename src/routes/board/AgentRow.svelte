@@ -34,7 +34,7 @@
     onopen: (pane: number) => void
     onfold: (pane: number) => void
     onswipe: (pane: number, open: boolean) => void
-    onclose: (row: Agent) => void
+    onclose: (row: Agent, from: HTMLElement | null) => void
   } = $props()
 
   const row = $derived(item.row)
@@ -44,6 +44,7 @@
   const [chevron] = icons['chevron-right']
 
   let dragged = $state<number | null>(null)
+  let root = $state<HTMLElement | null>(null)
 
   const offset = $derived(dragged ?? (open ? -OPEN_WIDTH : 0))
 
@@ -56,12 +57,12 @@
       })
     }
     if (gesture === 'hold') {
-      return watchLongPress(node, () => onclose(row))
+      return watchLongPress(node, () => onclose(row, root))
     }
   }
 </script>
 
-<div class="agent" style:--depth={item.depth} data-open={open ? '' : undefined}>
+<div class="agent" style:--depth={item.depth} data-open={open ? '' : undefined} bind:this={root}>
   {#if gesture === 'swipe' && closable}
     <button
       class="close"
@@ -71,7 +72,7 @@
       type="button"
       tabindex={open ? undefined : -1}
       aria-hidden={open ? undefined : 'true'}
-      onclick={() => onclose(row)}
+      onclick={() => onclose(row, root)}
       ontouchstart={() => {}}
     >
       Close

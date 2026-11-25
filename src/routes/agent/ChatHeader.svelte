@@ -41,11 +41,12 @@
     onchanges: (workspace: number, title: string) => void
     onfiles: (workspace: number, title: string) => void
     onstart: (workspace: number) => void
-    onclose: () => void
+    onclose: (from: HTMLElement | null) => void
   } = $props()
 
   let scrolled = $state(0)
   let tall = $state(0)
+  let closing = $state<HTMLElement | null>(null)
 
   const compact = $derived(boxed || compactHeader(scrolled, tall))
 
@@ -78,11 +79,11 @@
     <p class="place"><span class="status">{statusName(row.status)}</span> · {place(row)} › {row.tab_name}</p>
   </div>
 </header>
-<div class="close" class:spoken={boxed}>
+<div class="close" class:spoken={boxed} bind:this={closing}>
   {#if progress === 'closing'}
     <Button tone="danger" quiet resting>Closing…</Button>
   {:else}
-    <Button tone="danger" quiet resting={!closable && progress === null} busy={progress === 'checking'} onclick={onclose}>
+    <Button tone="danger" quiet resting={!closable && progress === null} busy={progress === 'checking'} onclick={() => onclose(closing)}>
       Close agent
     </Button>
   {/if}

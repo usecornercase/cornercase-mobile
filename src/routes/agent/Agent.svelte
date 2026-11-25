@@ -90,8 +90,11 @@
 
   const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)
 
-  const ask = () => {
+  let anchor = $state<HTMLElement | null>(null)
+
+  const ask = (from: HTMLElement | null) => {
     if (row !== null && closable) {
+      anchor = from
       void closer?.ask(row)
     }
   }
@@ -150,6 +153,7 @@
         plan={asking.plan}
         label={label(row, agents ?? [])}
         rechecking={asking.kind === 'rechecking'}
+        {anchor}
         oncancel={() => closer?.cancel(pane)}
         onconfirm={() => void closer?.confirm(pane)}
       />

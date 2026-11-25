@@ -535,7 +535,7 @@ describe('Closing an agent from the board', () => {
     expect(body.match(CLOSE)).toHaveLength(3)
     const source = flat(rowSource)
     expect(source).toContain("{#if gesture === 'swipe' && closable}")
-    expect(source).toContain("tabindex={open ? undefined : -1} aria-hidden={open ? undefined : 'true'} onclick={() => onclose(row)}")
+    expect(source).toContain("tabindex={open ? undefined : -1} aria-hidden={open ? undefined : 'true'} onclick={() => onclose(row, root)}")
     expect(source).toContain('background: var(--failed); color: var(--glass);')
     expect(source).toContain('clip-path: inset(0 0 0 calc(100% - var(--reveal)));')
   })
@@ -590,7 +590,7 @@ describe('Closing an agent from the board', () => {
     expect(body).toContain('Also stops 2 subagents')
     expect(body).toMatch(new RegExp(`<button class="button danger svelte-[\\w-]+( busy)?"${button}`))
     expect(flat(boardSource)).toContain(
-      "<CloseConfirm plan={asking.state.plan} label={label(asking.row, agents ?? [])} rechecking={asking.state.kind === 'rechecking'} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} />",
+      "<CloseConfirm plan={asking.state.plan} label={label(asking.row, agents ?? [])} rechecking={asking.state.kind === 'rechecking'} {anchor} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} />",
     )
   })
 
@@ -620,11 +620,12 @@ describe('Closing an agent from the board', () => {
   it('swipes on iOS and holds on Android, with a light tap when the hold fires', () => {
     const source = flat(rowSource)
     expect(source).toContain("if (gesture === 'swipe') { return watchRowSwipe(node, {")
-    expect(source).toContain("if (gesture === 'hold') { return watchLongPress(node, () => onclose(row)) }")
+    expect(source).toContain("if (gesture === 'hold') { return watchLongPress(node, () => onclose(row, root)) }")
     expect(source).toContain('ondrag: (next) => (dragged = closable ? next : null), onsettle: (next) => onswipe(row.pane, closable && next),')
     const board = flat(boardSource)
     expect(board).toContain('const gesture = rowGesture(platform)')
-    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() void closer.ask(row)")
+    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() anchor = from void closer.ask(row)")
+    expect(board).toContain('const ask = (row: Agent, from: HTMLElement | null) => {')
   })
 
   it('keeps one row open at most, shut by a touch elsewhere, a scroll, a list that moves it or a lost connection', () => {
@@ -643,6 +644,6 @@ describe('Closing an agent from the board', () => {
       'const opens = (row: Agent) => swiped?.pane === row.pane && closes(row) && closer?.offered(row) === true',
     )
     expect(board).toContain("if (swiped !== null && connection.state !== 'connected') { shut() }")
-    expect(flat(rowSource)).toContain("<div class=\"agent\" style:--depth={item.depth} data-open={open ? '' : undefined}>")
+    expect(flat(rowSource)).toContain("<div class=\"agent\" style:--depth={item.depth} data-open={open ? '' : undefined} bind:this={root}>")
   })
 })
