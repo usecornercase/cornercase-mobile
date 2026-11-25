@@ -34,11 +34,9 @@
   const trapped = (event: KeyboardEvent, dialog: HTMLElement) => {
     const items = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE)]
     const now = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const next = cycled(items, now, event.shiftKey)
-    if (next !== undefined) {
-      event.preventDefault()
-      next.focus()
-    }
+    const next = cycled(items, now, event.shiftKey) ?? dialog
+    event.preventDefault()
+    next.focus()
   }
 
   const entering = (node: Element) => (floating ? riseIn(node) : sheetIn(node))

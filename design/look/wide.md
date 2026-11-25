@@ -109,7 +109,7 @@ screens, the wide terminal, a hardware keyboard and a pointer, the close confirm
   anchor. No veil: the layer behind is transparent and a tap on it cancels. It rises in and fades out like a card.
   It is placed again on every resize and on every scroll (in capture, so the side's own scroll counts), since a
   trackpad's or a wheel's scroll goes through the clear layer and moves the anchor. `Esc` cancels, in both modes, and
-  goes no further; Tab stays among its own buttons (`cycled` in `popover.ts`), and on closing the focus goes back to
+  goes no further; Tab stays among its own buttons (`cycled` in `popover.ts`), or on the dialog itself while it has none to take it (both rest while it checks again), and on closing the focus goes back to
   what had it before, the row or `Close agent`. Narrow, it is the bottom sheet it was.
 - **Only the screen that asked shows the confirmation**: in two panes the board and the chosen agent's screen are both
   mounted with the one `CloseAgent`, so each one's ask names it (`ask(row, 'board' | 'agent')`, `askedBy`,

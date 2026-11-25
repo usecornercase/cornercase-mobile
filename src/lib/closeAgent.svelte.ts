@@ -109,7 +109,7 @@ export class CloseAgent {
   }
 
   confirmingFor(pane: number, by: Asker) {
-    const state = this.askedBy(pane) === by ? this.#states.get(pane) : undefined
+    const state = this.askedBy(pane) === by ? this.stateOf(pane) : undefined
     return state?.kind === 'confirming' || state?.kind === 'rechecking' ? state : null
   }
 

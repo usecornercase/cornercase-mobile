@@ -97,9 +97,14 @@ describe('Sheet', () => {
   it('keeps Tab among its own buttons, and gives the focus back to what had it once it closes', () => {
     const source = flat(sheetSource)
     expect(source).toContain("if (event.key === 'Tab') { trapped(event, event.currentTarget) }")
-    expect(source).toContain('const next = cycled(items, now, event.shiftKey)')
     expect(source).toContain(
       'const before = document.activeElement node.focus({ preventScroll: true }) return () => { if (before instanceof HTMLElement && before.isConnected) { before.focus({ preventScroll: true }) } }',
+    )
+  })
+
+  it('keeps Tab on the dialog itself while it has no button to take it, as while rechecking', () => {
+    expect(flat(sheetSource)).toContain(
+      'const next = cycled(items, now, event.shiftKey) ?? dialog event.preventDefault() next.focus()',
     )
   })
 
