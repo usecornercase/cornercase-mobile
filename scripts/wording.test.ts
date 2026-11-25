@@ -9,6 +9,7 @@ const SOURCES: [string, string[]][] = [
   ['crates/core/src', ['.rs']],
   ['src-tauri/src', ['.rs']],
   ['src-tauri/plugins', ['.rs', '.swift', '.kt']],
+  ['site', ['.html']],
 ]
 const SINGLE_FILES = [
   'src-tauri/gen/apple/project.yml',
@@ -22,8 +23,6 @@ const SINGLE_FILES = [
   'PRIVACY.md',
   'CHANGELOG.md',
   'SUPPORT.md',
-  'site/index.md',
-  'site/page.html',
 ]
 const NOT_SHOWN = new Set(['src/lib/bindings.ts'])
 
@@ -76,6 +75,8 @@ describe('the words the app shows', () => {
         'src-tauri/src/lib.rs',
         'src-tauri/plugins/secrets/src/lib.rs',
         'src-tauri/gen/apple/project.yml',
+        'site/index.html',
+        'site/partials/nav.html',
       ]),
     )
     expect(files.filter((path) => isTest(path) || NOT_SHOWN.has(path))).toEqual([])

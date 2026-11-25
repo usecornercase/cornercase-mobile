@@ -126,7 +126,7 @@ Topics, in `design/look/`:
 - **`scripts/wording.test.ts` keeps it**: it fails, naming `file:line`, when `\bMacs?\b` (with the capital, so not `macOS`, `MacBook`, `iMac` or `machine`) appears in what the app shows or the user reads:
   - `src/` (`.svelte` and `.ts`, without the tests and `bindings.ts`), `crates/core/src/` and `src-tauri/src/` (without `tests.rs` and `tests/` folders), and the plugins' Rust, Swift and Kotlin;
   - the platforms' texts: `project.yml`, `Info.plist`, iOS's `LaunchScreen.storyboard`, Android's `strings.xml` and `MainActivity.kt` (edited by hand, under `gen/`), `tauri.conf.json`, `index.html`;
-  - `README.md`, `PRIVACY.md`, `CHANGELOG.md`, `SUPPORT.md` and the site's own text (`site/index.md`, `site/page.html`).
+  - `README.md`, `PRIVACY.md`, `CHANGELOG.md`, `SUPPORT.md` and the site's own text (every `.html` under `site/`).
   - Left out: the tests, whose fixtures carry machine names as a user types them, and `design/`, `CLAUDE.md` and `scripts/`, which speak of macOS and keep dated records. A second test checks that the list holds `NoMachines.svelte`, `error.rs` and `project.yml`, so a mistyped path cannot empty it in silence.
 - **A vitest test, not `scripts/check-rules.mjs`**: that script checks code rules (lines, comments), and this is about words; vitest already runs `scripts/**/*.test.ts`, like `versions.test.ts`. Its walk is its own, skipping the generated and build folders. Rejected: an ESLint rule, which would not read Rust, Swift, Kotlin or the platforms' files.
 - **Saved histories keep the old reason**: a send that failed before 070 keeps the `reason` it was saved with; it is not migrated.

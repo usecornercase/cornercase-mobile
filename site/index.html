@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+{{head}}
+<link rel="stylesheet" href="./styles/landing.css">
+<script src="/boot.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+{{nav}}
+<section class="hero" id="hero" data-section="hero">
+  <div class="hero__pin">
+    <h1 class="hero__title" data-hero-title><span class="hero__line">Your agents.</span> <span class="hero__line">In your pocket.</span></h1>
+    <p class="hero__pitch" data-hero-rise>Cornercase remote follows, answers and starts the coding agents that <a href="https://usecornercase.dev">cornercase</a> runs on your computer, from your phone.</p>
+    <div class="hero__cta badges" data-hero-rise>
+        <a class="store" href="https://apps.apple.com/app/id6835431973"><img src="./assets/app-store-badge.svg" alt="Download on the App Store" width="144" height="48"></a>
+        <p class="soon"><span>Coming soon on</span> <b>Google Play</b></p>
+    </div>
+    <p class="apk" data-hero-rise><a href="{{repository}}/releases/latest">Android: download the APK from GitHub</a> <span>It installs outside Google Play, until the app is there.</span></p>
+    <p class="hero__note" data-hero-rise>Free. No account, no sign-in. It needs cornercase on your computer.</p>
+    <figure class="phone hero__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/01-board.png" width="1320" height="2868" loading="lazy" decoding="async" alt="The board: a demo machine's agents under Waiting, Done and Working, each with its workspace and how long it has been there."></div></figure>
+  </div>
+</section>
+<div class="stage" data-stage aria-hidden="true">
+  <div class="stage__glow" data-stage-glow></div>
+  <div class="phone" data-phone>
+    <div class="phone__screen">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/01-board.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/02-chat.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/03-terminal.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/04-changes.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/05-start.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+        <img data-screen src="../store/app-store/screenshots/iphone-6.9/06-files.png" width="1320" height="2868" alt="" loading="lazy" decoding="async">
+    </div>
+  </div>
+</div>
+<main id="main">
+      <section class="ch ch--left" id="board" data-section="board">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">See who</span> <span class="cap__line">needs you.</span></h2>
+            <p>Every agent of your projects on one board, with its status and for how long it has been in it. The ones that need you come first, and the agents they started fold under them. The board updates live.</p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/01-board.png" width="1320" height="2868" loading="lazy" decoding="async" alt="The board: a demo machine's agents under Waiting, Done and Working, each with its workspace and how long it has been there."></div></figure>
+      </section>
+      <section class="ch ch--right" id="chat" data-section="chat">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">Answer</span> <span class="cap__line">an agent.</span></h2>
+            <p>Tap an agent to read its conversation and its last message, see what it is doing right now, and answer it. When it asks a question, its options show as buttons, and a row of keys sends what a prompt needs.</p>
+        <p class="cap__keys"><span class="keys"><kbd>Enter</kbd><kbd>Tab</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>Esc</kbd><kbd>Ctrl-C</kbd></span></p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/02-chat.png" width="1320" height="2868" loading="lazy" decoding="async" alt="An agent's screen: its last message and a question, with three options as buttons and a row of keys under them."></div></figure>
+      </section>
+      <section class="ch ch--left" id="terminal" data-section="terminal">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">Open</span> <span class="cap__line">the live</span> <span class="cap__line">terminal.</span></h2>
+            <p>See the agent's terminal as it runs, fitted to your phone's width, and type into it with the keys a terminal needs.</p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/03-terminal.png" width="1320" height="2868" loading="lazy" decoding="async" alt="The agent's live terminal, fitted to the phone's width, with a row of terminal keys at the bottom."></div></figure>
+      </section>
+      <section class="ch ch--right" id="changes" data-section="changes">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">Check</span> <span class="cap__line">the changes.</span></h2>
+            <p>See which files a workspace changed, read each diff and mark it viewed, as cornercase's changes panel does.</p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/04-changes.png" width="1320" height="2868" loading="lazy" decoding="async" alt="A file's diff, with its added and removed lines and their numbers."></div></figure>
+      </section>
+      <section class="ch ch--left" id="start" data-section="start">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">Start</span> <span class="cap__line">new work.</span></h2>
+            <p>Start an agent with a prompt, in a workspace that is already open or in a new worktree, with the agent, account and model you pick. Or start an agent or a flow on an issue from any tracker cornercase is connected to.</p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/05-start.png" width="1320" height="2868" loading="lazy" decoding="async" alt="The Start form: workspace, own worktree, agent, account, model and prompt."></div></figure>
+      </section>
+      <section class="ch ch--right" id="files" data-section="files">
+        <div class="ch__pin">
+          <div class="cap" data-cap>
+            <h2 data-title><span class="cap__line">Browse</span> <span class="cap__line">the files.</span></h2>
+            <p>Browse the workspace's files, read a file or a picture, and search them by name.</p>
+          </div>
+        </div>
+        <figure class="phone ch__still"><div class="phone__screen"><img src="../store/app-store/screenshots/iphone-6.9/06-files.png" width="1320" height="2868" loading="lazy" decoding="async" alt="A workspace's file tree, with git's letters beside the files that changed."></div></figure>
+      </section>
+  <section class="needs" id="needs" data-section="needs">
+    <div class="needs__head" data-rise>
+      <h2>What it needs.</h2>
+      <p>The agents keep running in cornercase on your computer. The app follows them from your phone.</p>
+    </div>
+    <div class="facts">
+      <div class="fact" data-rise>
+        <h3>cornercase on your computer</h3>
+        <p>cornercase 0.13.78 or later, running on your computer (Linux or macOS).</p>
+        <a href="https://usecornercase.dev">Install cornercase</a>
+      </div>
+      <div class="fact" data-rise>
+        <h3>A phone that can reach it</h3>
+        <p>On the same network as the computer, or with both on your Tailscale network.</p>
+      </div>
+      <div class="fact" data-rise>
+        <h3>No account</h3>
+        <p>No account and no sign-in. The app collects nothing and talks only to the machines you pair it with.</p>
+        <a href="./privacy/">Privacy policy</a>
+      </div>
+    </div>
+    <div class="need" data-rise>
+      <h3>Pair it with your computer</h3>
+      <p>In cornercase on your computer, open Settings › Remote › Phone app, then scan its QR code from the app's Machines screen, or paste the code.</p>
+    </div>
+    <div class="need" data-rise>
+      <h3>Try it without a computer</h3>
+      <p>Tap <b>Try a demo</b> on the first screen to open a demo machine simulated on the phone, marked DEMO, with sample agents to read, message, answer, start and close. It uses no network and saves nothing.</p>
+    </div>
+  </section>
+  <section class="get" id="get" data-section="get">
+    <div class="get__head">
+      <span class="get__mark" data-rise>{{mark}}</span>
+      <h2 data-rise data-stretch><span class="get__line">Put your agents</span> <span class="get__line">in your pocket.</span></h2>
+      <p class="get__text" data-rise>Free and open source, MIT or Apache-2.0. For iPhone on iOS 15 or later, and Android 7.0 or later.</p>
+      <div class="get__cta badges badges--big" data-rise>
+        <a class="store" href="https://apps.apple.com/app/id6835431973"><img src="./assets/app-store-badge.svg" alt="Download on the App Store" width="168" height="56"></a>
+        <p class="soon"><span>Coming soon on</span> <b>Google Play</b></p>
+      </div>
+      <p class="apk" data-rise><a href="{{repository}}/releases/latest">Android: download the APK from GitHub</a> <span>Until the app is on Google Play. It installs outside the store: the first time, Android asks you to allow installing apps from your browser.</span></p>
+    </div>
+  </section>
+</main>
+{{footer}}
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>
