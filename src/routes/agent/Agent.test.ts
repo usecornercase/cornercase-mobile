@@ -162,7 +162,11 @@ describe('Agent, its subagents', () => {
   })
 
   it('starts folded again for each agent opened, and opens its children like the board', () => {
-    expect(flat(agentSource)).toContain('{#key row.pane} <Subagents {row} agents={agents ?? []} {onopen} /> {/key} <Thread {chat} {now} boxed={seen !== null} {drop} />')
+    expect(flat(agentSource)).toContain('{#key row.pane} <Subagents {row} agents={agents ?? []} {onopen} /> {/key} <Thread {chat} {now} boxed={seen !== null} {drop} {bar} />')
+  })
+
+  it("hands the header's bar to the thread, to measure where a message starts", () => {
+    expect(flat(agentSource)).toContain('let bar = $state<HTMLElement | null>(null)')
   })
 
   it('follows the rows as they change', () => {
@@ -246,7 +250,7 @@ describe('Agent, its sticky header', () => {
   it('turns compact past the large header, measured, following the page with a passive listener', () => {
     const source = flat(chatHeaderSource)
     expect(source).toContain('const compact = $derived(boxed || compactHeader(scrolled, tall))')
-    expect(source).toContain('<NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
+    expect(source).toContain('<NavBar bind:bar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
     expect(source).toContain('<header class="head" class:spoken={boxed} bind:clientHeight={tall}>')
     expect(source).toContain("const seen = () => (scrolled = window.scrollY) seen() window.addEventListener('scroll', seen, { passive: true })")
     expect(source).toContain("return () => window.removeEventListener('scroll', seen)")
@@ -330,7 +334,7 @@ describe('Agent, its composer', () => {
     expect(body).toMatch(/<div class="composer svelte-[\w-]+" style="--below: 0px;">/)
     expect(body).toMatch(/<textarea class="area svelte-[\w-]+" rows="1" aria-label="Answer" placeholder="Answer claude"/)
     expect(body).toContain('go on</textarea>')
-    expect(flat(agentSource)).toContain('<Thread {chat} {now} boxed={seen !== null} {drop} /> <Composer {chat} agent={row.agent} {below} {seen} {drop} {onfailed} {ontoast} />')
+    expect(flat(agentSource)).toContain('<Thread {chat} {now} boxed={seen !== null} {drop} {bar} /> <Composer {chat} agent={row.agent} {below} {seen} {drop} {onfailed} {ontoast} />')
   })
 
   it('offers no attaching without its agent, nor once it is gone', () => {
@@ -491,7 +495,7 @@ describe('Agent, without its row', () => {
   it('offers opening the terminal and the changes of its agent, beside going back', () => {
     expect(draw(chatWith(ROW))).toMatch(TERMINAL)
     expect(flat(agentSource)).toContain(
-      "{:else} <ChatHeader {row} agents={agents ?? []} {backTo} {below} {topmost} {rooted} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
+      "{:else} <ChatHeader bind:bar {row} agents={agents ?? []} {backTo} {below} {topmost} {rooted} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
     )
     const source = flat(chatHeaderSource)
     expect(source).toContain('label="Terminal" icon="square-terminal" onclick={() => onterminal(row)}')
@@ -636,7 +640,7 @@ describe('Agent, its keys', () => {
 
 describe('Agent, its live line', () => {
   it('draws the line at the end of the thread, above the composer', () => {
-    expect(flat(agentSource)).toContain('<Thread {chat} {now} boxed={seen !== null} {drop} /> <Composer {chat} agent={row.agent} {below} {seen} {drop} {onfailed} {ontoast} />')
+    expect(flat(agentSource)).toContain('<Thread {chat} {now} boxed={seen !== null} {drop} {bar} /> <Composer {chat} agent={row.agent} {below} {seen} {drop} {onfailed} {ontoast} />')
     expect(flat(threadSource)).toContain('{#if note !== null} <p class="reason">{note}</p> {/if} <AgentLine {chat} {now} /> {#if boxed} <div class="room"></div> {/if} </div> </div>')
   })
 

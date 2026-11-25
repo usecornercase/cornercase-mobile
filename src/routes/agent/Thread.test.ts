@@ -344,15 +344,34 @@ describe('Thread', () => {
     expect(flat(threadSource)).toContain('{#each bubbles as { entry, live, going } (entry.id)}')
   })
 
-  it('goes to the end once the conversation shows, and after that only when the page was at its end', () => {
+  it("lands once drawn by the change: the end on opening and after a send, a new answer's start at the end, else the end, or nowhere away from it", () => {
     const source = flat(threadSource)
     expect(source).toContain(
-      '$effect.pre(() => { void chat.reading void chat.outgoing const was = drawn drawn = chat.conversation.length > 0 if (drawn && (!was || untrack(ending))) { void tick().then(toEnd) } })',
+      '$effect.pre(() => { void chat.reading const outgoing = chat.outgoing const answer = lastAnswer(chat.conversation) const was = drawn drawn = chat.conversation.length > 0 const sent = sentAnew(shownSend, outgoing) const fresh = answer !== null && answer !== shownAnswer shownSend = outgoing shownAnswer = answer if (drawn) { land(landingAfter({ opened: !was, sent, pinned: untrack(ending), fresh }), answer) } })',
+    )
+    expect(source).toContain(
+      "const land = (landing: Landing, answer: AgentEntry | null) => { if (landing === 'end') { void tick().then(toEnd) } else if (landing === 'start' && answer !== null) { void tick().then(() => toStart(answer)) } }",
     )
     expect(source).toContain('const toEnd = () => { const scrolling = scroller() scrolling.scrollTo({ top: scrolling.scrollHeight }) }')
     expect(source).toContain(
       'const ending = () => { const { scrollTop, clientHeight, scrollHeight } = scroller() return atEnd(scrollTop, clientHeight, scrollHeight) }',
     )
+  })
+
+  it("puts a message's start under the bar, or the box's top, never past the end nor back up, and goes to the end without it", () => {
+    const source = flat(threadSource)
+    expect(source).toContain(
+      'const seenTop = () => { const view = boxed && box !== undefined ? box.getBoundingClientRect() : { top: 0, bottom: innerHeight } return under(view, bar?.getBoundingClientRect() ?? null).top }',
+    )
+    expect(source).toContain(
+      'const toStart = (answer: AgentEntry) => { const message = messages[answer.id] if (message === undefined || message === null) { toEnd() return } const scrolling = scroller() const { scrollTop, scrollHeight, clientHeight } = scrolling const start = scrollTop + message.getBoundingClientRect().top - drop - seenTop() scrolling.scrollTo({ top: startTop(scrollTop, scrollHeight - clientHeight, start) }) }',
+    )
+    expect(source).toContain('<article class="message" bind:this={messages[entry.id]}>')
+  })
+
+  it('draws without the bar, which it only measures', () => {
+    expect(flat(threadSource)).toContain('bar = null,')
+    expect(thread(chatWith(ROW))).toMatch(/<div class="thread svelte-[\w-]+">/)
   })
 
   it('scrolls the page while the keyboard is closed, and itself while it is open', () => {

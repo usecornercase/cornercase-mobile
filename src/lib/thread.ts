@@ -1,7 +1,7 @@
 import type { AgentRow_Serialize as AgentRow, HistoryEntry_Serialize as Entry, SendState } from './bindings'
 import { elapsed, span } from './board'
 import type { Outgoing, Reading } from './chat.svelte'
-import { lastAgent } from './history'
+import { lastAgent, type AgentEntry } from './history'
 
 export const STALL_MS = 120_000
 
@@ -72,5 +72,29 @@ export const shownState = (state: SendState, live: boolean) => (state === 'sendi
 
 export const atEnd = (scrollY: number, viewport: number, height: number, margin = AT_END_MARGIN) =>
   scrollY + viewport >= height - margin
+
+export type Landing = 'end' | 'start' | 'stay'
+
+export type Change = { opened: boolean; sent: boolean; pinned: boolean; fresh: boolean }
+
+export const sentAnew = (before: Outgoing | null, after: Outgoing | null) =>
+  after !== null && after !== before && after.state === 'sending'
+
+export const lastAnswer = (conversation: Entry[]): AgentEntry | null => {
+  const last = conversation.at(-1)
+  return last?.kind === 'agent' ? last : null
+}
+
+export const landingAfter = ({ opened, sent, pinned, fresh }: Change): Landing => {
+  if (opened || sent) {
+    return 'end'
+  }
+  if (!pinned) {
+    return 'stay'
+  }
+  return fresh ? 'start' : 'end'
+}
+
+export const startTop = (scrollTop: number, end: number, start: number) => Math.min(end, Math.max(scrollTop, start))
 
 export const compactHeader = (scrollY: number, headerHeight: number) => headerHeight > 0 && scrollY > headerHeight

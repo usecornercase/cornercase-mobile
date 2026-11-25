@@ -10,7 +10,7 @@ type Heard = Reading | { kind: 'lost'; reason: string }
 
 type Recorded = { entries: Entry[]; id: number }
 
-type AgentEntry = Extract<Entry, { kind: 'agent' }>
+export type AgentEntry = Extract<Entry, { kind: 'agent' }>
 
 export const nextId = (entries: Entry[]) => entries.reduce((next, entry) => Math.max(next, entry.id + 1), 0)
 
