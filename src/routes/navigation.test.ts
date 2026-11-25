@@ -40,7 +40,7 @@ describe('the screens of src/routes', () => {
   })
 
   it('reach over the safe area only on the screens without the connection bar above', () => {
-    expect(withBar.filter((path) => /<NavBar [^>]*\btopmost\b/.test(screens[path])).sort()).toEqual([
+    expect(withBar.filter((path) => /<NavBar [^>]*\stopmost[\s/>]/.test(screens[path])).sort()).toEqual([
       '/src/routes/Machine.svelte',
       '/src/routes/Machines.svelte',
       '/src/routes/changes/Changes.svelte',

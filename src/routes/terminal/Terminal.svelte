@@ -131,13 +131,13 @@
 <style>
   .screen {
     position: fixed;
-    inset: 0;
+    inset: 0 0 0 var(--pane-left);
     z-index: 1;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-      env(safe-area-inset-left);
+      var(--pane-safe-left);
     background: var(--glass);
   }
 

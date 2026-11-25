@@ -15,6 +15,7 @@
     below = 0,
     fixed = true,
     topmost = false,
+    rooted = false,
     edge = false,
     variant = platform,
   }: {
@@ -26,6 +27,7 @@
     below?: number
     fixed?: boolean
     topmost?: boolean
+    rooted?: boolean
     edge?: boolean
     variant?: Platform
   } = $props()
@@ -39,12 +41,14 @@
 
 <div class="bar {variant}" class:fixed class:topmost={fixed && topmost} class:edge style:--below="{below}px">
   <div class="start" bind:clientWidth={room}>
-    <button class="back" type="button" aria-label={backLabel(backTo)} onclick={onback} ontouchstart={() => {}}>
-      <Icon name={ios ? 'chevron-left' : 'arrow-left'} />
-      {#if ios && backTo !== null}
-        <span class="label" class:hidden={!fits} bind:clientWidth={labelWidth}>{backTo}</span>
-      {/if}
-    </button>
+    {#if !rooted}
+      <button class="back" type="button" aria-label={backLabel(backTo)} onclick={onback} ontouchstart={() => {}}>
+        <Icon name={ios ? 'chevron-left' : 'arrow-left'} />
+        {#if ios && backTo !== null}
+          <span class="label" class:hidden={!fits} bind:clientWidth={labelWidth}>{backTo}</span>
+        {/if}
+      </button>
+    {/if}
   </div>
   <div class="center">
     {#if title !== undefined}

@@ -13,6 +13,7 @@ type Props = {
   below?: number
   fixed?: boolean
   topmost?: boolean
+  rooted?: boolean
   edge?: boolean
   variant?: Platform
 }
@@ -78,6 +79,12 @@ describe('NavBar', () => {
 
   it('has no h1 without a title', () => {
     expect(bar({ variant: 'ios' })).not.toContain('<h1')
+  })
+
+  it('shows no back button when rooted, keeping the start so the centre stays in place', () => {
+    const body = bar({ rooted: true, title: 'tests', variant: 'ios' })
+    expect(body).not.toContain('class="back')
+    expect(body).toMatch(/<div class="start svelte-[\w-]+">(<!--[^>]*-->)*<\/div> <div class="center/)
   })
 
   it('draws the center and right snippets in their places', () => {

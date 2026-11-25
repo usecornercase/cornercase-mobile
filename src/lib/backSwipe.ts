@@ -111,7 +111,7 @@ export const RESTING: Shift = { x: 0, eased: false }
 
 export const translated = ({ x }: Shift) => (x > 0 ? `translateX(${x}px)` : undefined)
 
-export const backSwipes = (on: Platform, below: Route | null) => on === 'ios' && below !== null
+export const backSwipes = (on: Platform, below: Route | null, split: boolean) => on === 'ios' && below !== null && !split
 
 type Touched = Pick<Touch, 'identifier' | 'clientX' | 'clientY'>
 

@@ -13,6 +13,7 @@
     item,
     agents,
     now,
+    current = false,
     gesture,
     closable,
     open,
@@ -25,6 +26,7 @@
     item: Row
     agents: Agent[]
     now: number
+    current?: boolean
     gesture: RowGesture | null
     closable: boolean
     open: boolean
@@ -112,6 +114,7 @@
     <button
       class="row"
       type="button"
+      aria-current={current ? 'true' : undefined}
       aria-busy={progress === null ? undefined : 'true'}
       onclick={() => onopen(row.pane)}
       ontouchstart={() => {}}
@@ -189,6 +192,10 @@
   .row:active,
   .fold:active {
     background: var(--hover);
+  }
+
+  .row[aria-current='true'] {
+    background: var(--selected);
   }
 
   .row {

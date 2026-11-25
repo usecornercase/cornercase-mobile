@@ -24,11 +24,13 @@
   import type { Found } from './lib/issueSweep'
   import { latestWins } from './lib/join'
   import { dismiss, exit, ready } from './lib/launch'
+  import { layout, splits } from './lib/layout.svelte'
   import { titleOf, type Lookups } from './lib/navigation'
   import { platform } from './lib/platform'
   import { chatOf, openedTerminal, Router, routeFor, type Route, type StartingIssue, type Where } from './lib/router.svelte'
   import type { Asker } from './lib/question.svelte'
   import { openScanner } from './lib/scanner.svelte'
+  import { Keyboard } from './lib/terminal/keyboard.svelte'
   import { Toasts } from './lib/toasts.svelte'
   import ConnectionBar from './lib/ui/ConnectionBar.svelte'
   import { prefersReducedMotion } from './lib/ui/motion'
@@ -56,6 +58,7 @@
   let joinFailed = $state(false)
   let machines = $state<MachineView_Serialize[]>([])
   let barHeight = $state(0)
+  let terminalHead = $state(0)
   let launched = $state('')
   let shift = $state<Shift>(RESTING)
   const router = new Router(routeFor(idle, 0))
@@ -73,7 +76,7 @@
   const closerOf = (machine: number) =>
     new CloseAgent(commands, (toast) => toasts.push(toast), (panes) => router.closed(machine, panes))
   const closer = $derived(shownMachine === null ? null : closerOf(shownMachine))
-  const barred = $derived(route.name === 'home' || route.name === 'agent' || route.name === 'terminal')
+  const chatty = $derived(route.name === 'agent' || route.name === 'terminal')
   const opening = $derived(router.opened)
   const pane = $derived(opening?.pane ?? null)
   const owner = $derived(opening?.machine ?? null)
@@ -97,6 +100,12 @@
   const seen = $derived(chat?.row != null)
   const inView = $derived(chatOf(route) === null ? null : chat)
   const viewed = $derived(openedTerminal(route, current))
+  const split = $derived(splits(layout.wide, router.base.name, layout.full && viewed !== undefined))
+  const barred = $derived(!split && (route.name === 'home' || chatty))
+  const selected = $derived(split && pane !== null && owner === current.machine ? pane : null)
+  const rooted = $derived(split && router.below?.name === 'home')
+  const keyboard = new Keyboard(globalThis)
+  const toastsBelow = $derived(viewed !== undefined ? terminalHead : barred ? barHeight : 0)
   const editing = $derived(route.name === 'machine' ? machines.find((machine) => machine.id === route.id) : undefined)
   const rescanning = $derived(route.name === 'machine' && route.adding === true)
   const taken = $derived(machines.filter((machine) => machine.id !== editing?.id).map((machine) => machine.name))
@@ -112,7 +121,7 @@
     listed: () => current.agents ?? [],
   }
   const backTo = $derived(titleOf(router.below, lookups))
-  const swipeable = $derived(backSwipes(platform, router.below))
+  const swipeable = $derived(backSwipes(platform, router.below, split))
   const pressed = () => backPressed(platform, router.below, openScanner.scanning)
   const backHandled = $derived(handled(pressed()))
   const changes = $derived(
@@ -162,6 +171,16 @@
       untrack(() => leaving.when(isReady))
     })
     return () => leaving.stop()
+  })
+
+  $effect(() => layout.watch(globalThis))
+
+  $effect(() => keyboard.watch())
+
+  $effect(() => {
+    const root = document.documentElement
+    root.classList.toggle('split', split)
+    return () => root.classList.remove('split')
   })
 
   $effect(() => {
@@ -246,7 +265,13 @@
     router.setBase(routeFor(next, machines.length))
   }
 
-  const open = (pane: number) => router.go({ name: 'agent', machine: current.machine, pane })
+  const side = (next: Route) => (split ? router.settle(next) : router.go(next))
+
+  const agentOf = (pane: number): Route => ({ name: 'agent', machine: current.machine, pane })
+
+  const open = (pane: number) => router.go(agentOf(pane))
+
+  const choose = (pane: number) => side(agentOf(pane))
 
   const terminal = (row: AgentRow) => {
     if (current.machine !== null) {
@@ -322,7 +347,7 @@
 
   const start = () => {
     if (current.machine !== null) {
-      router.go({ name: 'start', machine: current.machine })
+      side({ name: 'start', machine: current.machine })
     }
   }
 
@@ -448,8 +473,42 @@
   })
 </script>
 
+{#snippet bar()}
+  <ConnectionBar
+    connection={current.connection}
+    machineName={barMachine.name}
+    demo={barMachine.demo}
+    bind:height={barHeight}
+    onmachines={() => side({ name: 'machines' })}
+    onleave={() => void demoExit.leave().catch(toasts.failed)}
+  />
+{/snippet}
+
+{#snippet board()}
+  <Board
+    machine={current.machine}
+    agents={current.agents}
+    connection={current.connection}
+    {closer}
+    {selected}
+    below={barHeight}
+    onopen={choose}
+    onstart={start}
+  />
+{/snippet}
+
 <main>
   {#if listed}
+    {#if split}
+      <aside
+        class="side"
+        style:top={keyboard.covered ? `${keyboard.offset}px` : undefined}
+        style:height={keyboard.covered ? `${keyboard.height}px` : undefined}
+      >
+        {@render bar()}
+        {@render board()}
+      </aside>
+    {/if}
     {#if viewed !== undefined}
       <Terminal
         machine={viewed.machine}
@@ -458,31 +517,20 @@
         {shift}
         onback={goBack}
         onfailed={toasts.failed}
-        bind:height={barHeight}
+        bind:height={terminalHead}
       />
     {:else}
       {#if barred}
-        <ConnectionBar
-          connection={current.connection}
-          machineName={barMachine.name}
-          demo={barMachine.demo}
-          bind:height={barHeight}
-          onmachines={() => router.go({ name: 'machines' })}
-          onleave={() => void demoExit.leave().catch(toasts.failed)}
-        />
+        {@render bar()}
       {/if}
       <div class="page" class:sliding={shift.x > 0} class:settling={shift.eased} style:transform={translated(shift)}>
         {#if route.name === 'home'}
-          <Board
-            machine={current.machine}
-            agents={current.agents}
-            connection={current.connection}
-            {closer}
-            below={barHeight}
-            onopen={open}
-            onstart={start}
-          />
-        {:else if barred}
+          {#if !split}
+            {@render board()}
+          {:else if (current.agents?.length ?? 0) > 0}
+            <p class="unchosen">Choose an agent</p>
+          {/if}
+        {:else if chatty}
           {#if chat !== null}
             <Agent
               {chat}
@@ -490,7 +538,9 @@
               connection={current.connection}
               {closer}
               {backTo}
-              below={barHeight}
+              below={split ? 0 : barHeight}
+              topmost={split}
+              {rooted}
               {starting}
               onback={goBack}
               onopen={open}
@@ -567,5 +617,31 @@
       </div>
     {/if}
   {/if}
-  <ToastStack items={toasts.items} ondismiss={(id) => toasts.dismiss(id)} below={barred ? barHeight : 0} />
+  <ToastStack items={toasts.items} ondismiss={(id) => toasts.dismiss(id)} below={toastsBelow} />
 </main>
+
+<style>
+  .side {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    width: var(--side);
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-right: 1px solid var(--border);
+  }
+
+  .page {
+    margin-left: var(--pane-left);
+  }
+
+  .unchosen {
+    margin: 40vh 0 0;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>

@@ -24,6 +24,7 @@
     agents,
     connection,
     closer,
+    selected = null,
     below = 0,
     onopen,
     onstart,
@@ -32,6 +33,7 @@
     agents: Agent[] | null
     connection: ConnectionView_Serialize
     closer: CloseAgent | null
+    selected?: number | null
     below?: number
     onopen: (pane: number) => void
     onstart: () => void
@@ -166,6 +168,7 @@
                 {item}
                 {agents}
                 {now}
+                current={selected === item.row.pane}
                 gesture={gestureOf(item.row)}
                 closable={closer?.offered(item.row) ?? false}
                 open={opens(item.row)}

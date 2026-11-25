@@ -84,7 +84,8 @@ describe('App wiring', () => {
 
   it('reads the machines before the first screen, so saved machines never show the empty screen', () => {
     expect(source).toContain('let listed = $state(!isTauri())')
-    expect(source).toContain('<main> {#if listed} {#if viewed !== undefined}')
+    expect(source).toContain('<main> {#if listed} {#if split} <aside')
+    expect(source).toContain('</aside> {/if} {#if viewed !== undefined}')
     expect(source).toContain('{/if} {/if} <ToastStack')
     expect(source.match(/listed = true/g)).toHaveLength(2)
   })
@@ -180,26 +181,69 @@ describe('App wiring', () => {
     expect(source).not.toMatch(/session/i)
   })
 
-  it('shows the connection bar on home, an agent and a terminal of another machine, and puts the board, the agent and the toasts below it', () => {
+  it('shows the connection bar on home, an agent and a terminal of another machine in one pane, and puts the board, the agent and the toasts below it', () => {
+    expect(source).toContain("const chatty = $derived(route.name === 'agent' || route.name === 'terminal')")
+    expect(source).toContain("const barred = $derived(!split && (route.name === 'home' || chatty))")
     expect(source).toContain(
-      "const barred = $derived(route.name === 'home' || route.name === 'agent' || route.name === 'terminal')",
+      "{#snippet bar()} <ConnectionBar connection={current.connection} machineName={barMachine.name} demo={barMachine.demo} bind:height={barHeight} onmachines={() => side({ name: 'machines' })} onleave={() => void demoExit.leave().catch(toasts.failed)} /> {/snippet}",
     )
+    expect(source).toContain('{:else} {#if barred} {@render bar()} {/if} <div class="page"')
     expect(source).toContain(
-      "{:else} {#if barred} <ConnectionBar connection={current.connection} machineName={barMachine.name} demo={barMachine.demo} bind:height={barHeight} onmachines={() => router.go({ name: 'machines' })} onleave={() => void demoExit.leave().catch(toasts.failed)} /> {/if}",
-    )
-    expect(source).toContain(
-      'style:transform={translated(shift)}> {#if route.name === \'home\'} <Board',
+      "style:transform={translated(shift)}> {#if route.name === 'home'} {#if !split} {@render board()} {:else if (current.agents?.length ?? 0) > 0} <p class=\"unchosen\">Choose an agent</p> {/if}",
     )
     expect(source).toContain('{:else} <NoMachines onadded={added} ondemo={() => void tryDemo().catch(toasts.failed)} /> {/if}')
     expect(source).toContain(
-      "<Board machine={current.machine} agents={current.agents} connection={current.connection} {closer} below={barHeight} onopen={open} onstart={start} />",
+      '{#snippet board()} <Board machine={current.machine} agents={current.agents} connection={current.connection} {closer} {selected} below={barHeight} onopen={choose} onstart={start} /> {/snippet}',
     )
     expect(source).toContain(
-      "const open = (pane: number) => router.go({ name: 'agent', machine: current.machine, pane })",
+      'const toastsBelow = $derived(viewed !== undefined ? terminalHead : barred ? barHeight : 0)',
     )
     expect(source).toContain(
-      '<ToastStack items={toasts.items} ondismiss={(id) => toasts.dismiss(id)} below={barred ? barHeight : 0} />',
+      '<ToastStack items={toasts.items} ondismiss={(id) => toasts.dismiss(id)} below={toastsBelow} />',
     )
+  })
+
+  it('splits into two panes in a wide window over the board, unless the terminal takes the whole width', () => {
+    expect(source).toContain('$effect(() => layout.watch(globalThis))')
+    expect(source).toContain(
+      'const split = $derived(splits(layout.wide, router.base.name, layout.full && viewed !== undefined))',
+    )
+    expect(source).toContain(
+      "$effect(() => { const root = document.documentElement root.classList.toggle('split', split) return () => root.classList.remove('split') })",
+    )
+  })
+
+  it('keeps the bar and the board in the side in two panes, beside the terminal too, following the keyboard', () => {
+    expect(source).toContain(
+      '{#if split} <aside class="side" style:top={keyboard.covered ? `${keyboard.offset}px` : undefined} style:height={keyboard.covered ? `${keyboard.height}px` : undefined} > {@render bar()} {@render board()} </aside> {/if}',
+    )
+    expect(source).toContain('const keyboard = new Keyboard(globalThis)')
+    expect(source).toContain('$effect(() => keyboard.watch())')
+    expect(source).toContain(
+      '.side { position: fixed; top: 0; bottom: 0; left: 0; z-index: 2; box-sizing: border-box; width: var(--side); padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left); overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border); }',
+    )
+    expect(source).toContain('.page { margin-left: var(--pane-left); }')
+    expect(source.match(/\{@render bar\(\)\}/g)).toHaveLength(2)
+    expect(source.match(/\{@render board\(\)\}/g)).toHaveLength(2)
+  })
+
+  it('replaces the detail with what the side opens in two panes, and stacks it in one', () => {
+    expect(source).toContain('const side = (next: Route) => (split ? router.settle(next) : router.go(next))')
+    expect(source).toContain("const agentOf = (pane: number): Route => ({ name: 'agent', machine: current.machine, pane })")
+    expect(source).toContain('const choose = (pane: number) => side(agentOf(pane))')
+    expect(source).toContain("onmachines={() => side({ name: 'machines' })}")
+  })
+
+  it('always stacks an agent opened from a chat, so it goes back to its parent', () => {
+    expect(source).toContain('const open = (pane: number) => router.go(agentOf(pane))')
+    expect(source).toContain('onback={goBack} onopen={open}')
+  })
+
+  it('marks the shown agent of the shown machine in two panes, and drops the back button straight over the board', () => {
+    expect(source).toContain(
+      'const selected = $derived(split && pane !== null && owner === current.machine ? pane : null)',
+    )
+    expect(source).toContain("const rooted = $derived(split && router.below?.name === 'home')")
   })
 
   it('keeps one closer per shown machine, fed every listed board and never a list it does not have', () => {
@@ -233,7 +277,7 @@ describe('App wiring', () => {
       'const asker: Asker = { open: commands.questionOpen, close: commands.questionClose, listen: (heard) => events.questionChanged.listen((event) => heard(event.payload)), }',
     )
     expect(source).toContain(
-      "<Agent {chat} agents={current.agents} connection={current.connection} {closer} {backTo} below={barHeight} {starting} onback={goBack} onopen={open} onfailed={(message) => toasts.push({ level: 'error', message })} ontoast={(toast) => toasts.push(toast)} onterminal={terminal} onchanges={review} onfiles={browse} onstart={startIn} />",
+      "<Agent {chat} agents={current.agents} connection={current.connection} {closer} {backTo} below={split ? 0 : barHeight} topmost={split} {rooted} {starting} onback={goBack} onopen={open} onfailed={(message) => toasts.push({ level: 'error', message })} ontoast={(toast) => toasts.push(toast)} onterminal={terminal} onchanges={review} onfiles={browse} onstart={startIn} />",
     )
   })
 
@@ -265,7 +309,7 @@ describe('App wiring', () => {
 
   it('opens Start from the board on the active machine, with its connection and without the bar', () => {
     expect(source).toContain(
-      "const start = () => { if (current.machine !== null) { router.go({ name: 'start', machine: current.machine }) } }",
+      "const start = () => { if (current.machine !== null) { side({ name: 'start', machine: current.machine }) } }",
     )
     expect(source).not.toContain('boot')
     expect(source).toContain(
@@ -342,7 +386,7 @@ describe('App wiring', () => {
   it('shows the terminal on top of everything only on its own machine, going back from it and putting the toasts below its bar', () => {
     expect(source).toContain('const viewed = $derived(openedTerminal(route, current))')
     expect(source).toContain(
-      '{#if viewed !== undefined} <Terminal machine={viewed.machine} row={viewed.row} {backTo} {shift} onback={goBack} onfailed={toasts.failed} bind:height={barHeight} />',
+      '{#if viewed !== undefined} <Terminal machine={viewed.machine} row={viewed.row} {backTo} {shift} onback={goBack} onfailed={toasts.failed} bind:height={terminalHead} />',
     )
   })
 
@@ -421,7 +465,7 @@ describe('App wiring', () => {
   })
 
   it('goes back with the edge swipe only on iOS over another screen, and never while the scanner is open', () => {
-    expect(source).toContain('const swipeable = $derived(backSwipes(platform, router.below))')
+    expect(source).toContain('const swipeable = $derived(backSwipes(platform, router.below, split))')
     expect(source).toContain(
       "$effect(() => { if (!swipeable) { return } return watchBackSwipe(document, { enabled: () => !document.documentElement.classList.contains('scanning'), width: () => innerWidth, reduced: prefersReducedMotion, onshift: (next) => (shift = next), onback: goBack, }) })",
     )
@@ -440,7 +484,7 @@ describe('App wiring', () => {
   it('slides every screen but the connection bar and the toasts, and the terminal on its own', () => {
     expect(source).toContain('let shift = $state<Shift>(RESTING)')
     expect(source).toContain(
-      "onleave={() => void demoExit.leave().catch(toasts.failed)} /> {/if} <div class=\"page\" class:sliding={shift.x > 0} class:settling={shift.eased} style:transform={translated(shift)}>",
+      '{#if barred} {@render bar()} {/if} <div class="page" class:sliding={shift.x > 0} class:settling={shift.eased} style:transform={translated(shift)}>',
     )
     expect(source).toContain('<NoMachines onadded={added} ondemo={() => void tryDemo().catch(toasts.failed)} /> {/if} </div> {/if} {/if} <ToastStack')
     expect(source.match(/translated\(shift\)/g)).toHaveLength(1)
@@ -448,7 +492,7 @@ describe('App wiring', () => {
 
   it('shows a terminal of another machine as the gone agent', () => {
     expect(source).toContain(
-      "{:else if barred} {#if chat !== null} <Agent {chat} agents={current.agents} connection={current.connection} {closer} {backTo} below={barHeight} {starting} onback={goBack} onopen={open} onfailed={(message) => toasts.push({ level: 'error', message })} ontoast={(toast) => toasts.push(toast)} onterminal={terminal} onchanges={review} onfiles={browse} onstart={startIn} /> {/if} {:else if route.name === 'changes'}",
+      "{:else if chatty} {#if chat !== null} <Agent {chat} agents={current.agents} connection={current.connection} {closer} {backTo} below={split ? 0 : barHeight} topmost={split} {rooted} {starting} onback={goBack} onopen={open} onfailed={(message) => toasts.push({ level: 'error', message })} ontoast={(toast) => toasts.push(toast)} onterminal={terminal} onchanges={review} onfiles={browse} onstart={startIn} /> {/if} {:else if route.name === 'changes'}",
     )
   })
 })

@@ -38,10 +38,13 @@ const source = terminalSource.replace(/\s+/g, ' ')
 describe('the terminal screen', () => {
   it('goes back to its agent from the start of a bar that is the fixed row of the screen', () => {
     expect(body).toMatch(
-      /<div class="head svelte-[\w-]+"><div class="bar ios svelte-[\w-]+ edge" style="--below: 0px;"><div class="start svelte-[\w-]+"><button class="back svelte-[\w-]+" type="button" aria-label="Back to Fix the login flow"><svg[^>]*>(<!--[^>]*-->)*<path d="m15 18-6-6 6-6">/,
+      /<div class="head svelte-[\w-]+"><div class="bar ios svelte-[\w-]+ edge" style="--below: 0px;"><div class="start svelte-[\w-]+">(<!--[^>]*-->)*<button class="back svelte-[\w-]+" type="button" aria-label="Back to Fix the login flow"><svg[^>]*>(<!--[^>]*-->)*<path d="m15 18-6-6 6-6">/,
     )
     expect(source).toContain('<div class="head" bind:clientHeight={height}> <NavBar {backTo} title={label(row)} {onback} fixed={false} edge>')
     expect(source).toContain('.head { flex: none; }')
+    expect(source).toContain(
+      '.screen { position: fixed; inset: 0 0 0 var(--pane-left); z-index: 1; box-sizing: border-box; display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) var(--pane-safe-left);',
+    )
     expect(body).not.toContain('<header')
   })
 

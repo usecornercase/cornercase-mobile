@@ -24,6 +24,8 @@
     closer,
     backTo,
     below = 0,
+    topmost = false,
+    rooted = false,
     starting = null,
     onback,
     onopen,
@@ -40,6 +42,8 @@
     closer: CloseAgent | null
     backTo: string | null
     below?: number
+    topmost?: boolean
+    rooted?: boolean
     starting?: string | null
     onback: () => void
     onopen: (pane: number) => void
@@ -96,15 +100,16 @@
 <section
   class="agent"
   class:keyboard={seen !== null}
+  class:topmost
   style:--below="{below}px"
   style:top={seen === null ? undefined : `${keyboard.offset}px`}
   style:height={seen === null ? undefined : `${seen}px`}
 >
   {#if chat.gone}
-    <NavBar {backTo} {onback} {below} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} />
     <p class="gone">This agent is no longer running.</p>
   {:else if row === null}
-    <NavBar {backTo} {onback} {below} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} />
     {#if starting !== null}
       <p class="starting"><Spinner />Starting {starting}…</p>
     {:else}
@@ -118,6 +123,8 @@
       agents={agents ?? []}
       {backTo}
       {below}
+      {topmost}
+      {rooted}
       boxed={seen !== null}
       sendable={connection.state === 'connected'}
       {closable}
@@ -163,11 +170,19 @@
   .keyboard {
     position: fixed;
     right: 0;
-    left: 0;
+    left: var(--pane-left);
     min-height: 0;
     padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset));
-    padding-right: calc(env(safe-area-inset-right) + var(--inset-wide));
-    padding-left: calc(env(safe-area-inset-left) + var(--inset-wide));
+    padding-right: calc(env(safe-area-inset-right) + var(--gutter));
+    padding-left: calc(var(--pane-safe-left) + var(--gutter));
+  }
+
+  .topmost {
+    padding-top: var(--gap);
+  }
+
+  .keyboard.topmost {
+    padding-top: calc(env(safe-area-inset-top) + var(--gap));
   }
 
   .floor {

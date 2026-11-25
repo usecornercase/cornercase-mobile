@@ -41,9 +41,11 @@ const draw = (
   starting: string | null = null,
   agents: AgentRow[] | null = null,
   closer: CloseAgent | null = null,
+  panes: { topmost?: boolean; rooted?: boolean } = {},
 ) =>
   render(Agent, {
     props: {
+      ...panes,
       chat,
       agents,
       connection,
@@ -178,6 +180,33 @@ const SHORT = /<div class="short svelte-[\w-]+" aria-hidden="true">(.*?)<\/div>/
 
 const bar = (row: AgentRow) => draw(chatWith(row)).match(BAR)?.[1] ?? ''
 
+describe('Agent, in two panes', () => {
+  it('shows no back button straight over the board, keeping the start of the bar', () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, null, null, { topmost: true, rooted: true })
+    expect(body).not.toMatch(BACK)
+    expect(body).toMatch(/<div class="start svelte-[\w-]+">(<!--[^>]*-->)*<\/div>/)
+  })
+
+  it('reaches its bar over the safe area, with no connection bar above it', () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, null, null, { topmost: true })
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost" style="--below: 0px;">/)
+    expect(body).toMatch(/<section class="agent svelte-[\w-]+ topmost"/)
+    expect(body).toMatch(BACK)
+  })
+
+  it('reaches over the safe area in every state of its bar', () => {
+    const body = draw(chatWith(null), 0, CONNECTED, null, null, null, { topmost: true, rooted: true })
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost" style="--below: 0px;">/)
+    expect(body).not.toMatch(/class="back /)
+  })
+
+  it('lines the bar up with the top of the pane, keyboard or not', () => {
+    expect(flat(agentSource)).toContain(
+      '.topmost { padding-top: var(--gap); } .keyboard.topmost { padding-top: calc(env(safe-area-inset-top) + var(--gap)); }',
+    )
+  })
+})
+
 describe('Agent, its sticky header', () => {
   it('keeps Back at the start of the bar and Terminal, Changes, Files and New agent at its end, with the large header after it to scroll away', () => {
     const shown = bar(ROW)
@@ -211,7 +240,7 @@ describe('Agent, its sticky header', () => {
   it('turns compact past the large header, measured, following the page with a passive listener', () => {
     const source = flat(chatHeaderSource)
     expect(source).toContain('const compact = $derived(boxed || compactHeader(scrolled, tall))')
-    expect(source).toContain('<NavBar {backTo} {onback} {below} edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
+    expect(source).toContain('<NavBar {backTo} {onback} {below} {topmost} {rooted} edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
     expect(source).toContain('<header class="head" class:spoken={boxed} bind:clientHeight={tall}>')
     expect(source).toContain("const seen = () => (scrolled = window.scrollY) seen() window.addEventListener('scroll', seen, { passive: true })")
     expect(source).toContain("return () => window.removeEventListener('scroll', seen)")
@@ -356,10 +385,10 @@ describe('Agent, with the phone keyboard open', () => {
     expect(source).toContain('const keyboard = new Keyboard(globalThis)')
     expect(source).toContain('$effect(() => keyboard.watch())')
     expect(source).toContain(
-      'class:keyboard={seen !== null} style:--below="{below}px" style:top={seen === null ? undefined : `${keyboard.offset}px`} style:height={seen === null ? undefined : `${seen}px`} >',
+      'class:keyboard={seen !== null} class:topmost style:--below="{below}px" style:top={seen === null ? undefined : `${keyboard.offset}px`} style:height={seen === null ? undefined : `${seen}px`} >',
     )
     expect(source).toContain(
-      '.keyboard { position: fixed; right: 0; left: 0; min-height: 0; padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset));',
+      '.keyboard { position: fixed; right: 0; left: var(--pane-left); min-height: 0; padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset)); padding-right: calc(env(safe-area-inset-right) + var(--gutter)); padding-left: calc(var(--pane-safe-left) + var(--gutter)); }',
     )
   })
 
@@ -449,14 +478,14 @@ describe('Agent, without its row', () => {
 
   it('draws the bar of the shared NavBar in every state, with no text Button to go back', () => {
     const source = flat(agentSource)
-    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \/>/g)).toHaveLength(2)
+    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \{topmost\} \{rooted\} \/>/g)).toHaveLength(2)
     expect(source).not.toContain('<Button tone="plain" onclick={onback}>')
   })
 
   it('offers opening the terminal and the changes of its agent, beside going back', () => {
     expect(draw(chatWith(ROW))).toMatch(TERMINAL)
     expect(flat(agentSource)).toContain(
-      "{:else} <ChatHeader {row} agents={agents ?? []} {backTo} {below} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
+      "{:else} <ChatHeader {row} agents={agents ?? []} {backTo} {below} {topmost} {rooted} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
     )
     const source = flat(chatHeaderSource)
     expect(source).toContain('label="Terminal" icon="square-terminal" onclick={() => onterminal(row)}')

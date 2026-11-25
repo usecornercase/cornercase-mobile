@@ -13,6 +13,8 @@
     backTo,
     agents,
     below = 0,
+    topmost = false,
+    rooted = false,
     boxed = false,
     sendable,
     closable,
@@ -28,6 +30,8 @@
     backTo: string | null
     agents: AgentRow[]
     below?: number
+    topmost?: boolean
+    rooted?: boolean
     boxed?: boolean
     sendable: boolean
     closable: boolean
@@ -53,7 +57,7 @@
   })
 </script>
 
-<NavBar {backTo} {onback} {below} edge={compact}>
+<NavBar {backTo} {onback} {below} {topmost} {rooted} edge={compact}>
   {#snippet center()}
     <div class="short" class:compact aria-hidden="true">
       <StatusDot status={row.status} />

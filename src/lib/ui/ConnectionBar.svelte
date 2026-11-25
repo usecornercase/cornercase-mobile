@@ -70,6 +70,13 @@
     backdrop-filter: blur(24px);
   }
 
+  :global(html.split) .connection {
+    right: auto;
+    box-sizing: border-box;
+    width: var(--side);
+    padding-left: env(safe-area-inset-left);
+  }
+
   .row {
     box-sizing: border-box;
     display: flex;

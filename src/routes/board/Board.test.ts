@@ -53,7 +53,8 @@ const draw = (
   below = 0,
   machine: number | null = 1,
   closer: CloseAgent | null = null,
-) => render(Board, { props: { machine, agents, connection, closer, below, onopen: () => {}, onstart: () => {} } }).body
+  selected: number | null = null,
+) => render(Board, { props: { machine, agents, connection, closer, selected, below, onopen: () => {}, onstart: () => {} } }).body
 
 const BRANCH = [
   at(1, 'working', { title: 'Lead', rank_status: 'waiting' }),
@@ -141,11 +142,22 @@ describe('Board', () => {
     expect(draw([at(1, 'working')])).not.toContain('class="time')
   })
 
+  it('marks the row of the agent shown beside the board, and only it', () => {
+    const body = draw([at(1, 'idle', { title: 'first' }), at(2, 'idle', { title: 'second' })], CONNECTED, 0, 1, null, 2)
+    expect(body.match(/aria-current="true"/g)).toHaveLength(1)
+    expect(body).toMatch(/<button class="row svelte-[\w-]+" type="button" aria-current="true">(?:(?!<\/button>)[^])*second/)
+    expect(flat(rowSource)).toContain(".row[aria-current='true'] { background: var(--selected); }")
+  })
+
+  it('marks no row with nothing shown beside the board', () => {
+    expect(draw([at(1, 'idle')])).not.toContain('aria-current')
+  })
+
   it('makes each row a button of at least 44 px that reacts to a touch', () => {
     expect(draw([at(1, 'idle')])).toMatch(/<button class="row svelte-[\w-]+" type="button">/)
     expect(flat(rowSource)).toContain('min-height: 44px;')
     expect(flat(rowSource)).toContain(
-      '<button class="row" type="button" aria-busy={progress === null ? undefined : \'true\'} onclick={() => onopen(row.pane)} ontouchstart={() => {}} >',
+      '<button class="row" type="button" aria-current={current ? \'true\' : undefined} aria-busy={progress === null ? undefined : \'true\'} onclick={() => onopen(row.pane)} ontouchstart={() => {}} >',
     )
   })
 

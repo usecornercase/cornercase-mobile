@@ -66,6 +66,10 @@ export class Router {
     this.#stack = [first]
   }
 
+  get base(): Base {
+    return this.#stack[0] as Base
+  }
+
   get current(): Route {
     return this.#stack[this.#stack.length - 1]
   }
