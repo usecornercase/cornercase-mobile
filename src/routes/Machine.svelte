@@ -63,7 +63,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} title={machine.name} {onback} topmost />
+  <NavBar {backTo} title={machine.name} {onback} topmost measure="form" />
   {#if !machine.demo}
     <Glass>
       <form class="form" onsubmit={rename}>
@@ -178,9 +178,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    max-width: 520px;
-    margin: 0 auto;
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter-form) 40px;
   }
 
   .form {

@@ -57,7 +57,7 @@
   })
 </script>
 
-<NavBar {backTo} {onback} {below} {topmost} {rooted} edge={compact}>
+<NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}>
   {#snippet center()}
     <div class="short" class:compact aria-hidden="true">
       <StatusDot status={row.status} />

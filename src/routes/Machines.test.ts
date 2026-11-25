@@ -87,7 +87,7 @@ const withRescannable = async () => {
 describe('Machines', () => {
   it('goes back to the agents from a bar with its title', async () => {
     const body = await screen()
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Agents"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost form"[^]*?aria-label="Back to Agents"/)
     expect(body).toMatch(/<div class="center svelte-[\w-]+">(<!--[^>]*-->)*<h1 class="title svelte-[\w-]+">Machines<\/h1>/)
     expect(body).not.toContain('class="top')
   })
@@ -232,7 +232,7 @@ describe('Machines wiring', () => {
 
   it('connects to the one picked, probes one again on Check again, and goes back on Back', () => {
     expect(script).toContain('onpick={() => onpick(machine.id)} oncheck={() => void probes.check([machine.id])}')
-    expect(script).toContain('<NavBar {backTo} title="Machines" {onback} topmost />')
+    expect(script).toContain('<NavBar {backTo} title="Machines" {onback} topmost measure="form" />')
     expect(flat(rowSource)).toContain(
       '{:else if !active} <Button tone="plain" resting={checking} onclick={oncheck}>Check again</Button> {/if}',
     )

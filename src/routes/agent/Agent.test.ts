@@ -174,7 +174,7 @@ describe('Agent, its subagents', () => {
   })
 })
 
-const BAR = /<div class="bar ios svelte-[\w-]+ fixed" style="--below: 0px;">(.*?)<\/div><!----> <header class="head svelte-[\w-]+">/
+const BAR = /<div class="bar ios svelte-[\w-]+ fixed column" style="--below: 0px;">(.*?)<\/div><!----> <header class="head svelte-[\w-]+">/
 
 const SHORT = /<div class="short svelte-[\w-]+" aria-hidden="true">(.*?)<\/div>/
 
@@ -189,15 +189,21 @@ describe('Agent, in two panes', () => {
 
   it('reaches its bar over the safe area, with no connection bar above it', () => {
     const body = draw(chatWith(ROW), 0, CONNECTED, null, null, null, { topmost: true })
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost" style="--below: 0px;">/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column" style="--below: 0px;">/)
     expect(body).toMatch(/<section class="agent svelte-[\w-]+ topmost"/)
     expect(body).toMatch(BACK)
   })
 
   it('reaches over the safe area in every state of its bar', () => {
     const body = draw(chatWith(null), 0, CONNECTED, null, null, null, { topmost: true, rooted: true })
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost" style="--below: 0px;">/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column" style="--below: 0px;">/)
     expect(body).not.toMatch(/class="back /)
+  })
+
+  it('keeps the chat in a centred column, its bars and its composer across the pane', () => {
+    expect(flat(agentSource)).toContain('padding: calc(var(--below) + var(--inset)) var(--gutter) var(--inset-wide);')
+    expect(flat(agentSource).match(/measure="column"/g)).toHaveLength(2)
+    expect(flat(chatHeaderSource)).toContain('measure="column"')
   })
 
   it('lines the bar up with the top of the pane, keyboard or not', () => {
@@ -220,7 +226,7 @@ describe('Agent, its sticky header', () => {
   })
 
   it('starts large at the top of the page, below the connection bar', () => {
-    expect(draw(chatWith(ROW), 52)).toMatch(/<div class="bar ios svelte-[\w-]+ fixed" style="--below: 52px;"><div class="start/)
+    expect(draw(chatWith(ROW), 52)).toMatch(/<div class="bar ios svelte-[\w-]+ fixed column" style="--below: 52px;"><div class="start/)
   })
 
   it('carries a compact line between them, with the dot and the title, hidden from VoiceOver', () => {
@@ -240,7 +246,7 @@ describe('Agent, its sticky header', () => {
   it('turns compact past the large header, measured, following the page with a passive listener', () => {
     const source = flat(chatHeaderSource)
     expect(source).toContain('const compact = $derived(boxed || compactHeader(scrolled, tall))')
-    expect(source).toContain('<NavBar {backTo} {onback} {below} {topmost} {rooted} edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
+    expect(source).toContain('<NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
     expect(source).toContain('<header class="head" class:spoken={boxed} bind:clientHeight={tall}>')
     expect(source).toContain("const seen = () => (scrolled = window.scrollY) seen() window.addEventListener('scroll', seen, { passive: true })")
     expect(source).toContain("return () => window.removeEventListener('scroll', seen)")
@@ -478,7 +484,7 @@ describe('Agent, without its row', () => {
 
   it('draws the bar of the shared NavBar in every state, with no text Button to go back', () => {
     const source = flat(agentSource)
-    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \{topmost\} \{rooted\} \/>/g)).toHaveLength(2)
+    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \{topmost\} \{rooted\} measure="column" \/>/g)).toHaveLength(2)
     expect(source).not.toContain('<Button tone="plain" onclick={onback}>')
   })
 

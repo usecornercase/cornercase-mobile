@@ -42,7 +42,7 @@ const flat = (text: string) => text.replace(/\s+/g, ' ')
 describe('Issue', () => {
   it('heads the screen with the key in the shared bar, going back to the issues', () => {
     const body = drawn({ kind: 'reading' })
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Issues"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column"[^]*?aria-label="Back to Issues"/)
     expect(body).toMatch(/<h1 class="title svelte-[\w-]+">#41<\/h1>/)
   })
 

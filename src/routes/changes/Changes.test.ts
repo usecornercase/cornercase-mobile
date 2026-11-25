@@ -63,7 +63,7 @@ const pressed = (body: string) =>
 describe('Changes', () => {
   it("goes back to the agent from a bar with the workspace's name and its totals at the right", () => {
     const body = draw(stateWith(FIXTURE))
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to tests"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column"[^]*?aria-label="Back to tests"/)
     expect(body).toMatch(/<div class="center svelte-[\w-]+">(<!--[^>]*-->)*<h1 class="title svelte-[\w-]+">login<\/h1>/)
     expect(body).toMatch(
       /<div class="end svelte-[\w-]+">(<!--[^>]*-->)*<p class="totals svelte-[\w-]+"><span class="plus svelte-[\w-]+">\+12<\/span> <span class="minus svelte-[\w-]+">−9<\/span>/,
@@ -142,7 +142,7 @@ describe('Changes', () => {
 
   it('keeps the totals on one line and goes back through the bar', () => {
     const source = flat(changesSource)
-    expect(source).toContain('<NavBar {backTo} {title} {onback} topmost> {#snippet right()}')
+    expect(source).toContain('<NavBar {backTo} {title} {onback} topmost measure="column"> {#snippet right()}')
     expect(source).toContain('.totals { margin: 0; padding-right: var(--inset); font-variant-numeric: tabular-nums; white-space: nowrap; }')
   })
 })

@@ -98,7 +98,7 @@
 {/snippet}
 
 <section class="screen">
-  <NavBar {backTo} title="Issues" {onback} topmost>
+  <NavBar {backTo} title="Issues" {onback} topmost measure="column">
     {#snippet right()}
       {#if issues.loading && issues.swept !== null}
         <span class="busy"><Spinner /></span>
@@ -150,7 +150,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter) 40px;
   }
 
   .busy {

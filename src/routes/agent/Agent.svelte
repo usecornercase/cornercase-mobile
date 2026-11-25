@@ -106,10 +106,10 @@
   style:height={seen === null ? undefined : `${seen}px`}
 >
   {#if chat.gone}
-    <NavBar {backTo} {onback} {below} {topmost} {rooted} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" />
     <p class="gone">This agent is no longer running.</p>
   {:else if row === null}
-    <NavBar {backTo} {onback} {below} {topmost} {rooted} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" />
     {#if starting !== null}
       <p class="starting"><Spinner />Starting {starting}…</p>
     {:else}
@@ -164,7 +164,7 @@
     flex-direction: column;
     gap: var(--inset-wide);
     min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    padding: calc(var(--below) + var(--inset)) var(--inset-wide) var(--inset-wide);
+    padding: calc(var(--below) + var(--inset)) var(--gutter) var(--inset-wide);
   }
 
   .keyboard {

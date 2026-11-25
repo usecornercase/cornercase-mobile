@@ -146,8 +146,8 @@
     max-height: calc(var(--seen, 100dvh) - env(safe-area-inset-top) - var(--below) - var(--over-composer));
     overflow-y: auto;
     overscroll-behavior: contain;
-    margin: 0 calc(-1 * var(--inset-wide)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom));
-    padding: var(--gap) var(--inset-wide) calc(var(--inset-wide) + env(safe-area-inset-bottom));
+    margin: 0 calc(-1 * var(--gutter)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom));
+    padding: var(--gap) var(--gutter) calc(var(--inset-wide) + env(safe-area-inset-bottom));
     background: var(--glass);
     --over-composer: 132px;
   }

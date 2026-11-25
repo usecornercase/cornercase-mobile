@@ -128,7 +128,7 @@ const flat = (text: string) => text.replace(/\s+/g, ' ')
 describe('Start', () => {
   it('goes back to the agents from a bar with its title, and starts on Agent, with Issue as the only other action', async () => {
     const body = screen(await formOf())
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Agents"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost form"[^]*?aria-label="Back to Agents"/)
     expect(body).toMatch(/<div class="center svelte-[\w-]+">(<!--[^>]*-->)*<h1 class="title svelte-[\w-]+">Start<\/h1>/)
     expect(body).not.toContain('class="top')
     expect(body).toMatch(
@@ -728,7 +728,7 @@ describe('Start wiring', () => {
   it('hands over what started, goes back on Back and switches between the agent form and the issues', () => {
     const script = flat(startSource)
     expect(script).toContain('form = new StartForm(commands, (started, agent) => onstarted(started, agent)),')
-    expect(script).toContain('<NavBar {backTo} title="Start" {onback} topmost />')
+    expect(script).toContain('<NavBar {backTo} title="Start" {onback} topmost measure="form" />')
     expect(script).toContain('options={ACTIONS} bind:value={action} disabled={form.sending}')
     expect(flat(segmentedSource)).toContain('onclick={() => (value = name)}')
     expect(script).toContain("{:else if action === 'agent'} <AgentForm {form} {sendable} />")

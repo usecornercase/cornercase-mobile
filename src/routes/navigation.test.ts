@@ -53,6 +53,27 @@ describe('the screens of src/routes', () => {
     ])
   })
 
+  it.each([
+    ['/src/routes/changes/Changes.svelte', 'column', 'var(--gutter)'],
+    ['/src/routes/files/Files.svelte', 'column', 'var(--gutter)'],
+    ['/src/routes/issues/Issues.svelte', 'column', 'var(--gutter)'],
+    ['/src/routes/issues/Issue.svelte', 'column', 'var(--gutter)'],
+    ['/src/routes/start/Start.svelte', 'form', 'var(--gutter-form)'],
+    ['/src/routes/Machines.svelte', 'form', 'var(--gutter-form)'],
+    ['/src/routes/Machine.svelte', 'form', 'var(--gutter-form)'],
+  ])('%s keeps its content in a %s, with its bar across the pane', (path, measure, gutter) => {
+    expect(screens[path]).toContain(`measure="${measure}"`)
+    expect(screens[path]).toContain(`padding: var(--gap) ${gutter} 40px;`)
+    expect(screens[path]).not.toContain('max-width: 520px')
+  })
+
+  it.each(['/src/routes/changes/Diff.svelte', '/src/routes/files/File.svelte', '/src/routes/terminal/Terminal.svelte'])(
+    '%s takes the whole pane, for code',
+    (path) => {
+      expect(screens[path]).not.toMatch(/measure=|var\(--gutter/)
+    },
+  )
+
   it('go back through the NavBar on every screen with a way back', () => {
     expect(withBar.sort()).toEqual([
       '/src/routes/Machine.svelte',

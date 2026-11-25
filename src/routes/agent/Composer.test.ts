@@ -327,7 +327,7 @@ describe('Composer, its place', () => {
 
   it('keeps clear of the bottom safe area while the phone keyboard is closed', () => {
     expect(flat(composerSource)).toContain(
-      'margin: 0 calc(-1 * var(--inset-wide)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom)); padding: var(--gap) var(--inset-wide) calc(var(--inset-wide) + env(safe-area-inset-bottom));',
+      'margin: 0 calc(-1 * var(--gutter)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom)); padding: var(--gap) var(--gutter) calc(var(--inset-wide) + env(safe-area-inset-bottom));',
     )
     expect(render(Composer, { props: placed() }).body).toMatch(
       /<div class="composer svelte-[\w-]+" style="--below: 0px;">/,

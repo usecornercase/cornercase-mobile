@@ -61,7 +61,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} title="Start" {onback} topmost />
+  <NavBar {backTo} title="Start" {onback} topmost measure="form" />
   {#if form.issue === null}
     <Segmented label="What to start" options={ACTIONS} bind:value={action} disabled={form.sending} />
   {/if}
@@ -84,9 +84,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    max-width: 520px;
-    margin: 0 auto;
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter-form) 40px;
   }
 
   .offline {

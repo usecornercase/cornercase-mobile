@@ -82,7 +82,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} title="Machines" {onback} topmost />
+  <NavBar {backTo} title="Machines" {onback} topmost measure="form" />
   <Glass>
     <ul class="list">
       {#each machines as machine (machine.id)}
@@ -135,9 +135,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    max-width: 520px;
-    margin: 0 auto;
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter-form) 40px;
   }
 
   .list {

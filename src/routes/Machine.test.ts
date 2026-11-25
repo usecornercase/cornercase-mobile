@@ -67,7 +67,7 @@ const flat = (text: string) => text.replace(/\s+/g, ' ')
 describe('Machine', () => {
   it('goes back to the machines from a bar with the name of the machine', () => {
     const body = screen()
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Machines"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost form"[^]*?aria-label="Back to Machines"/)
     expect(body).toMatch(/<div class="center svelte-[\w-]+">(<!--[^>]*-->)*<h1 class="title svelte-[\w-]+">Studio<\/h1>/)
     expect(body).not.toContain('class="top')
   })
@@ -253,6 +253,6 @@ describe('Machine wiring', () => {
 
   it('reloads the machines after each change, leaves once deleted and goes back on Back', () => {
     expect(script).toContain('() => machine, () => onchanged(), () => onremoved(),')
-    expect(script).toContain('<NavBar {backTo} title={machine.name} {onback} topmost />')
+    expect(script).toContain('<NavBar {backTo} title={machine.name} {onback} topmost measure="form" />')
   })
 })
