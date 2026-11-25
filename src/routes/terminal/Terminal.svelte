@@ -18,6 +18,7 @@
   import { Sending } from '../../lib/terminal/sending'
   import TerminalView from '../../lib/terminal/Terminal.svelte'
   import Typist from '../../lib/terminal/Typist.svelte'
+  import { layout } from '../../lib/layout.svelte'
   import Icon from '../../lib/ui/Icon.svelte'
   import NavBar from '../../lib/ui/NavBar.svelte'
 
@@ -100,10 +101,21 @@
         <p class="where">{row.tab_name} · {place(row)}</p>
       {/snippet}
       {#snippet right()}
+        {#if layout.wide}
+          <button
+            class="fit"
+            type="button"
+            aria-label="Full width"
+            aria-pressed={layout.full}
+            onclick={() => layout.toggleFull()}
+          >
+            <Icon name="maximize-2" />
+          </button>
+        {/if}
         <button
           class="fit"
           type="button"
-          aria-label="Fit to this phone"
+          aria-label="Fit to this screen"
           aria-pressed={fit.on}
           onclick={() => fit.toggle()}
         >

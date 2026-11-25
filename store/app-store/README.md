@@ -53,7 +53,7 @@ applied yet. The decisions behind it are in [design/releases/app-store.md](../..
 - **The reviewer's contact** (`contactFirstName`, `contactLastName`, `contactPhone`, `contactEmail`): given at upload
   time only, never written into this repository.
 - **The terminal splits words** in `03-terminal` and the recording ("but t / he receipt"): the demo's sample has lines
-  longer than the phone's columns, and the demo wraps them at the last column, as a terminal does; `Fit to this phone`
+  longer than the phone's columns, and the demo wraps them at the last column, as a terminal does; `Fit to this screen`
   does not change it. Shorter lines in `crates/core/src/demo/data/questions.json` would fix it, out of this listing's
   scope; until then the screenshot is taken again as it is.
 

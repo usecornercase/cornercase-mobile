@@ -583,6 +583,7 @@ describe('Icon', () => {
     ['pencil', 'm15 5 4 4', ''],
     ['rotate-ccw', 'M3 3v5h5', ''],
     ['smartphone', 'M12 18h.01', '<rect x="5" y="2" width="14" height="20" rx="2"></rect>'],
+    ['maximize-2', 'M15 3h6v6', '<line x1="3" y1="21" x2="10" y2="14"></line>'],
     ['square-check', 'm9 12 2 2 4-4', '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'],
     ['square-terminal', 'm7 11 2-2-2-2', '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'],
     ['git-compare', 'M13 6h3a2 2 0 0 1 2 2v7', '<circle cx="18" cy="18" r="3"></circle>'],

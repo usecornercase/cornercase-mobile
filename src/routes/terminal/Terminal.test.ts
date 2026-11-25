@@ -1,6 +1,7 @@
 import { render } from 'svelte/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentRow_Serialize as AgentRow, Size_Deserialize } from '../../lib/bindings'
+import { layout, WIDE } from '../../lib/layout.svelte'
 import { Fit, type Page } from '../../lib/terminal/fit.svelte'
 import { Keyboard, whileClosed } from '../../lib/terminal/keyboard.svelte'
 import { Opening } from '../../lib/terminal/opening'
@@ -29,9 +30,22 @@ const ROW: AgentRow = {
   project_name: 'app',
 }
 
-const body = render(Terminal, {
-  props: { machine: 1, row: ROW, backTo: 'Fix the login flow', onback: () => {}, onfailed: () => {} },
-}).body.replaceAll('<!---->', '')
+const drawn = () =>
+  render(Terminal, {
+    props: { machine: 1, row: ROW, backTo: 'Fix the login flow', onback: () => {}, onfailed: () => {} },
+  }).body.replaceAll('<!---->', '')
+
+const body = drawn()
+
+const quiet = { addEventListener: () => {}, removeEventListener: () => {} }
+
+const drawnAt = (innerWidth: number) => {
+  const stop = layout.watch({ ...quiet, innerWidth })
+  const shown = drawn()
+  stop()
+  layout.watch(quiet)()
+  return shown
+}
 
 const source = terminalSource.replace(/\s+/g, ' ')
 
@@ -188,13 +202,27 @@ describe('fitting the pane to the phone', () => {
 
   it('shows a toggle at the end of the bar, on and named for what it does', () => {
     expect(body).toMatch(
-      /<div class="end svelte-[\w-]+"><button class="fit svelte-[\w-]+" type="button" aria-label="Fit to this phone" aria-pressed="true"><svg/,
+      /<div class="end svelte-[\w-]+">(?:<!--[^>]*-->| )*<button class="fit svelte-[\w-]+" type="button" aria-label="Fit to this screen" aria-pressed="true"><svg/,
     )
     expect(source).toContain(
-      '{#snippet right()} <button class="fit" type="button" aria-label="Fit to this phone" aria-pressed={fit.on} onclick={() => fit.toggle()} > <Icon name="smartphone" />',
+      '<button class="fit" type="button" aria-label="Fit to this screen" aria-pressed={fit.on} onclick={() => fit.toggle()} > <Icon name="smartphone" />',
     )
     expect(source).toContain('.fit { display: inline-flex;')
     expect(source).toContain("width: 44px; height: 44px;")
+  })
+
+  it('offers no Full width in a narrow window', () => {
+    expect(drawnAt(WIDE - 1)).not.toContain('aria-label="Full width"')
+  })
+
+  it('offers Full width before the fit switch in a wide window, off until pressed', () => {
+    const shown = drawnAt(WIDE)
+    expect(shown).toMatch(
+      /<div class="end svelte-[\w-]+">(<!--[^>]*-->)*<button class="fit svelte-[\w-]+" type="button" aria-label="Full width" aria-pressed="false">[^]*?<line x1="21" y1="3" x2="14" y2="10"><\/line>[^]*?<\/button>(?:<!--[^>]*-->| )*<button class="fit svelte-[\w-]+" type="button" aria-label="Fit to this screen"/,
+    )
+    expect(source).toContain(
+      '{#snippet right()} {#if layout.wide} <button class="fit" type="button" aria-label="Full width" aria-pressed={layout.full} onclick={() => layout.toggleFull()} > <Icon name="maximize-2" /> </button> {/if}',
+    )
   })
 
   it('opens the pane fitted at once, never as it is first', async () => {
