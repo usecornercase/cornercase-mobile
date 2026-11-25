@@ -24,7 +24,11 @@ export const seen = (screen: Screen, before?: Tallest): Seen => {
   return { height, offset: offsetTop, covered: hidden > 0, open: hidden > GAP, tallest }
 }
 
-const editingNow = () => globalThis.document?.activeElement?.matches('textarea, input, [contenteditable]') ?? false
+const FIELDS = 'textarea, input, [contenteditable]'
+
+export const isField = (target: EventTarget | null) => (target as Partial<Element> | null)?.matches?.(FIELDS) ?? false
+
+const editingNow = () => isField(globalThis.document?.activeElement ?? null)
 
 const listened = (target: Listened, names: string[], listener: () => void) => {
   for (const name of names) target.addEventListener(name, listener)

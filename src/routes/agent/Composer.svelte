@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Toast } from '../../lib/bindings'
   import type { Chat } from '../../lib/chat.svelte'
+  import { sendOnKey } from '../../lib/keys'
   import Icon from '../../lib/ui/Icon.svelte'
   import Spinner from '../../lib/ui/Spinner.svelte'
   import TextArea from '../../lib/ui/TextArea.svelte'
@@ -110,7 +111,7 @@
       <Icon name="keyboard" size={22} />
     </button>
     <div class="field">
-      <TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} />
+      <TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} onkeydown={(event) => sendOnKey(event, chat)} />
     </div>
     <button
       class="send"

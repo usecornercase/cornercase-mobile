@@ -96,7 +96,7 @@ describe('Composer, its capsule', () => {
     const body = draw(done('go on'))
     expect(body).toMatch(/<div class="grow svelte-[\w-]+" data-value="go on"><textarea class="area svelte-[\w-]+" rows="1" aria-label="Answer" placeholder="Answer claude"/)
     expect(body).toContain('go on</textarea>')
-    expect(flat(composerSource)).toContain('<TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} />')
+    expect(flat(composerSource)).toContain('<TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft}')
   })
 })
 
@@ -158,6 +158,12 @@ describe('Composer, its Send', () => {
     const keysSource = flat(composerSource).match(/aria-label="Keys".*?<\/button>/)?.[0]
     expect(keysSource).toContain('onmousedown={(event) => event.preventDefault()}')
     expect(keysSource).toContain('onclick={() => chat.toggleKeys()}')
+  })
+
+  it('sends on Cmd+Return or Ctrl+Return from the field, Return alone adding a line', () => {
+    expect(flat(composerSource)).toContain(
+      '<TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} onkeydown={(event) => sendOnKey(event, chat)} />',
+    )
   })
 
   it('leaves a failed send to its bubble, with no toast', () => {

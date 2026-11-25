@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import coreKeys from '../../crates/core/src/cli/keys.rs?raw'
-import { DIGIT_ROW, ROW, type KeyButton } from './keys'
+import { DIGIT_ROW, ROW, sendOnKey, sendsOn, type KeyButton } from './keys'
 
 const KEY_NAMES = `enter, esc, tab, backspace, space, up, down, left, right, home, end, pageup,
 pagedown, delete, insert, f1 to f12 or one character, each after any of ctrl+, alt+ and shift+`
@@ -67,5 +67,48 @@ describe('the keys', () => {
 
   it('are never the same twice', () => {
     expect(new Set(every.map(({ key }) => key)).size).toBe(every.length)
+  })
+})
+
+const enter = (held: { metaKey?: boolean; ctrlKey?: boolean; isComposing?: boolean } = {}, key = 'Enter') => ({
+  key,
+  metaKey: false,
+  ctrlKey: false,
+  isComposing: false,
+  preventDefault: vi.fn(),
+  ...held,
+})
+
+describe('sendsOn', () => {
+  it.each([
+    ['Cmd+Return', enter({ metaKey: true }), true],
+    ['Ctrl+Return', enter({ ctrlKey: true }), true],
+    ['Return alone', enter(), false],
+    ['Cmd+Return in a composition', enter({ metaKey: true, isComposing: true }), false],
+    ['Cmd with another key', enter({ metaKey: true }, 'a'), false],
+  ])('%s: %s', (_, event, sends) => {
+    expect(sendsOn(event)).toBe(sends)
+  })
+})
+
+describe('sendOnKey', () => {
+  const chat = (canSend: boolean) => ({ canSend, send: vi.fn(() => Promise.resolve()) })
+
+  it('sends on Cmd+Return when it can, holding the line break back', () => {
+    const [event, sending] = [enter({ metaKey: true }), chat(true)]
+    sendOnKey(event, sending)
+    expect([sending.send.mock.calls.length, event.preventDefault.mock.calls.length]).toEqual([1, 1])
+  })
+
+  it('sends nothing on Cmd+Return when it cannot, and adds no line either', () => {
+    const [event, sending] = [enter({ ctrlKey: true }), chat(false)]
+    sendOnKey(event, sending)
+    expect([sending.send.mock.calls.length, event.preventDefault.mock.calls.length]).toEqual([0, 1])
+  })
+
+  it('leaves Return alone to add a line', () => {
+    const [event, sending] = [enter(), chat(true)]
+    sendOnKey(event, sending)
+    expect([sending.send.mock.calls.length, event.preventDefault.mock.calls.length]).toEqual([0, 0])
   })
 })

@@ -211,6 +211,11 @@ describe('fitting the pane to the phone', () => {
     expect(source).toContain("width: 44px; height: 44px;")
   })
 
+  it('hands a key pressed off any field to the typist, so a hardware keyboard types without a tap', () => {
+    expect(source).toContain('const stray = (event: KeyboardEvent) => { if (!isField(event.target)) { typist?.take(event) } }')
+    expect(source).toContain('<svelte:document onkeydown={stray} />')
+  })
+
   it('offers no Full width in a narrow window', () => {
     expect(drawnAt(WIDE - 1)).not.toContain('aria-label="Full width"')
   })

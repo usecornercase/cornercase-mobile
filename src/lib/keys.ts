@@ -22,3 +22,19 @@ const DIGITS: readonly Digit[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '
 export const DIGIT_ROW: readonly KeyButton[] = DIGITS.map((digit) => ({ label: digit, name: digit, key: digit }))
 
 export const digitOf = (number: number): Digit | null => DIGITS.find((digit) => digit === String(number)) ?? null
+
+type Pressing = Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'isComposing'>
+
+export const sendsOn = (event: Pressing) => event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.isComposing
+
+type Sendable = { readonly canSend: boolean; send: () => Promise<unknown> }
+
+export const sendOnKey = (event: Pressing & Pick<Event, 'preventDefault'>, chat: Sendable) => {
+  if (!sendsOn(event)) {
+    return
+  }
+  event.preventDefault()
+  if (chat.canSend) {
+    void chat.send()
+  }
+}

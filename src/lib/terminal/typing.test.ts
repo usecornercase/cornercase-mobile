@@ -101,6 +101,47 @@ describe('beforeinput', () => {
   })
 })
 
+describe('stray', () => {
+  it.each([
+    ['a letter', 'a', {}, { text: 'a' }],
+    ['a capital', 'A', { shiftKey: true }, { text: 'A' }],
+    ['a space', ' ', {}, { text: ' ' }],
+    ['an accented letter', 'é', { altKey: true }, { text: 'é' }],
+    ['Ctrl+C', 'c', { ctrlKey: true }, { key: { code: 'c', mods: ['ctrl'] } }],
+    ['Tab', 'Tab', {}, { key: { code: 'tab' } }],
+    ['Shift+Tab', 'Tab', { shiftKey: true }, { key: { code: 'tab', mods: ['shift'] } }],
+    ['Escape', 'Escape', {}, { key: { code: 'esc' } }],
+    ['an arrow', 'ArrowUp', {}, { key: { code: 'up' } }],
+    ['Enter', 'Enter', {}, { key: { code: 'enter' } }],
+  ] as const)('sends %s', (_, key, held, event) => {
+    expect(typing().stray(press(key, held))).toEqual(sent(event))
+  })
+
+  it.each([
+    ['Cmd+V, the system\'s', 'v', { metaKey: true }],
+    ['Cmd+Tab', 'Tab', { metaKey: true }],
+    ['a dead key', 'Dead', {}],
+    ['a bare modifier', 'Shift', { shiftKey: true }],
+    ['Ctrl alone', 'Control', { ctrlKey: true }],
+    ['a key in a composition', 'a', { isComposing: true }],
+    ['a key the input method processes', 'a', { keyCode: 229 }],
+  ] as const)('passes %s', (_, key, held) => {
+    expect(typing().stray(press(key, held))).toEqual(passed)
+  })
+
+  it('passes a key while a composition is open', () => {
+    const input = typing()
+    input.compositionstart()
+    expect(input.stray(press('a'))).toEqual(passed)
+  })
+
+  it('sends a letter with the sticky Ctrl, which it releases', () => {
+    const { ctrl, typing } = armed()
+    expect(typing.stray(press('c'))).toEqual(sent({ key: { code: 'c', mods: ['ctrl'] } }))
+    expect(ctrl.armed).toBe(false)
+  })
+})
+
 describe('keydown', () => {
   it.each([
     ['Enter', 'enter'],

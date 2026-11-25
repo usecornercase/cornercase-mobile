@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { GAP, Keyboard, seen, whileClosed, type Screen, type Viewport } from './keyboard.svelte'
+import { GAP, isField, Keyboard, seen, whileClosed, type Screen, type Viewport } from './keyboard.svelte'
 
 const WIDTH = 411
 
@@ -213,6 +213,19 @@ describe('seen', () => {
 
   it('takes a taller page as the new tallest', () => {
     expect(seen(screen(FULL), { width: WIDTH, height: FULL - KEYBOARD }).tallest).toEqual({ width: WIDTH, height: FULL })
+  })
+})
+
+describe('isField', () => {
+  const element = (field: boolean) => ({ matches: (selector: string) => field && selector === 'textarea, input, [contenteditable]' })
+
+  it.each([
+    ['a text field', element(true), true],
+    ['a button', element(false), false],
+    ['no target', null, false],
+    ['a target that is no element', {}, false],
+  ])('is %s: %s', (_, target, field) => {
+    expect(isField(target as unknown as EventTarget)).toBe(field)
   })
 })
 

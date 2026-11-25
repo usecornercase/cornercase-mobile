@@ -25,6 +25,11 @@
 
   export const focus = () => textarea?.focus({ preventScroll: true })
 
+  export const take = (event: KeyboardEvent) => {
+    focus()
+    run(event, typing.stray(event))
+  }
+
   const restore = (field: HTMLTextAreaElement) => {
     field.value = SENTINEL
     field.setSelectionRange(SENTINEL.length, SENTINEL.length)

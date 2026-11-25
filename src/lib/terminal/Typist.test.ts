@@ -26,6 +26,12 @@ describe('Typist', () => {
     expect(typistSource).toContain('bind:this={textarea}')
   })
 
+  it('takes a key pressed off any field: it focuses the field first, then sends what Typing makes of it', () => {
+    expect(flat(typistSource)).toContain(
+      'export const take = (event: KeyboardEvent) => { focus() run(event, typing.stray(event)) }',
+    )
+  })
+
   it('sends nothing on a closed tab', () => {
     expect(typistSource).toContain('if (!disabled && step.send.length > 0) send(step.send)')
   })
