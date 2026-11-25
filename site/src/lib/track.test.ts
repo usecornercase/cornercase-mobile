@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { freeArea, placeKeys, pose, poseAt, slide, transformOf, travel } from './track'
 import type { Key, Pose, Rect } from './track'
 
+function view(width: number, height: number, wide = width > 980) {
+  return { width, height, wide }
+}
+
 const box = { width: 400, height: 839 }
 
 function edges(p: Pose) {
@@ -17,42 +21,42 @@ function inside(p: Pose, [x, y, w, h]: Rect) {
 
 describe('a wide screen', () => {
   it('puts a phone that goes right whole inside its area, right of the caption', () => {
-    const area = freeArea('right', 1440, 900)
-    const right = pose({ free: 'right' }, box, 1440, 900)
+    const area = freeArea('right', view(1440, 900))
+    const right = pose({ free: 'right' }, box, view(1440, 900))
     expect(inside(right, area)).toBe(true)
     expect(edges(right).left).toBeGreaterThanOrEqual(Math.max(380, 1440 * 0.36))
   })
 
   it('mirrors it for a phone that goes left', () => {
-    const left = pose({ free: 'left' }, box, 1440, 900)
-    const right = pose({ free: 'right' }, box, 1440, 900)
-    expect(inside(left, freeArea('left', 1440, 900))).toBe(true)
+    const left = pose({ free: 'left' }, box, view(1440, 900))
+    const right = pose({ free: 'right' }, box, view(1440, 900))
+    expect(inside(left, freeArea('left', view(1440, 900)))).toBe(true)
     expect(edges(left).right).toBeLessThanOrEqual(1440 - Math.max(380, 1440 * 0.36))
     expect(left.scale).toBeCloseTo(right.scale)
   })
 
   it('puts a phone that has the screen in its middle', () => {
-    const p = pose({ free: 'screen' }, box, 1440, 900)
+    const p = pose({ free: 'screen' }, box, view(1440, 900))
     expect(p.cx).toBe(720)
-    expect(inside(p, freeArea('screen', 1440, 900))).toBe(true)
+    expect(inside(p, freeArea('screen', view(1440, 900)))).toBe(true)
   })
 })
 
 describe('a narrow screen', () => {
-  const area = freeArea('left', 390, 844)
+  const area = freeArea('left', view(390, 844))
 
   it('gives both sides the same area, above the caption sheet', () => {
-    expect(freeArea('right', 390, 844)).toEqual(area)
+    expect(freeArea('right', view(390, 844))).toEqual(area)
     expect(area[1] + area[3]).toBeLessThanOrEqual(844 - Math.min(844 * 0.42, 320))
   })
 
   it('makes the phone wider than most of the area, so its text reads', () => {
-    const p = pose({ free: 'left' }, box, 390, 844)
+    const p = pose({ free: 'left' }, box, view(390, 844))
     expect(box.width * p.scale).toBeGreaterThan(area[2] * 0.78)
   })
 
   it('puts the top of the phone at the top of the area at focus 0, and moves it up as the focus grows', () => {
-    const top = (focus: number) => edges(pose({ free: 'left', focus }, box, 390, 844)).top
+    const top = (focus: number) => edges(pose({ free: 'left', focus }, box, view(390, 844))).top
     expect(top(0)).toBeCloseTo(area[1])
     expect(top(0.5)).toBeLessThan(top(0))
     expect(top(0.9)).toBeLessThan(top(0.5))
@@ -60,9 +64,18 @@ describe('a narrow screen', () => {
 
   it('centres a phone shorter than its area', () => {
     const tall = 4000
-    const p = pose({ free: 'right', focus: 0 }, box, 390, tall)
-    const [, y, , h] = freeArea('right', 390, tall)
+    const p = pose({ free: 'right', focus: 0 }, box, view(390, tall))
+    const [, y, , h] = freeArea('right', view(390, tall))
     expect(p.cy).toBeCloseTo(y + h / 2)
+  })
+})
+
+describe('the choice between wide and narrow', () => {
+  it('follows the flag the media query gave, not the width', () => {
+    expect(freeArea('right', view(985, 900, false))).toEqual(freeArea('left', view(985, 900, false)))
+    expect(freeArea('right', view(975, 900, true))[0]).toBe(Math.max(380, 975 * 0.36))
+    const side = { free: 'right' as const, focus: 0 }
+    expect(pose(side, box, view(1200, 900, false)).scale).not.toBeCloseTo(pose(side, box, view(1200, 900, true)).scale)
   })
 })
 
@@ -73,14 +86,14 @@ describe('pose', () => {
     [390, 90],
   ])('keeps the scale above 0 at %d × %d', (width, height) => {
     for (const free of ['screen', 'left', 'right'] as const) {
-      expect(pose({ free }, box, width, height).scale).toBeGreaterThan(0)
+      for (const wide of [true, false]) expect(pose({ free }, box, view(width, height, wide)).scale).toBeGreaterThan(0)
     }
   })
 
-  it('moves by fractions of the viewport and keeps the turn and the fade', () => {
-    const still = pose({ free: 'screen' }, box, 1000, 800)
-    const moved = pose({ free: 'screen', dx: 0.1, dy: 0.5, rx: 30, fade: 0 }, box, 1000, 800)
-    expect(moved.cx - still.cx).toBeCloseTo(100)
+  it('moves down by a fraction of the viewport and keeps the turn and the fade', () => {
+    const still = pose({ free: 'screen' }, box, view(1000, 800))
+    const moved = pose({ free: 'screen', dy: 0.5, rx: 30, fade: 0 }, box, view(1000, 800))
+    expect(moved.cx).toBe(still.cx)
     expect(moved.cy - still.cy).toBeCloseTo(400)
     expect(moved.rx).toBe(30)
     expect(moved.fade).toBe(0)
@@ -94,7 +107,7 @@ describe('poseAt', () => {
     { at: 0, shot: { free: 'screen', rx: 40 } },
     { at: 100, shot: { free: 'screen', rx: 0 } },
   ]
-  const placed = placeKeys(keys, box, 1440, 900)
+  const placed = placeKeys(keys, box, view(1440, 900))
 
   it('holds the first and the last poses beyond the ends', () => {
     expect(poseAt(placed, -50).rx).toBe(40)
@@ -118,15 +131,13 @@ describe('poseAt', () => {
 
 describe('transformOf', () => {
   it('writes no rotation for a pose that does not turn', () => {
-    const p = { cx: 300, cy: 500, scale: 0.5, rx: 0, ry: 0, rz: 0, fade: 1 }
+    const p = { cx: 300, cy: 500, scale: 0.5, rx: 0, ry: 0, fade: 1 }
     expect(transformOf(p, box)).toBe('translate3d(100.00px,80.50px,0) scale(0.5000)')
   })
 
   it('turns a pose that does, about its centre', () => {
-    const p = { cx: 200, cy: 419.5, scale: 1, rx: 10, ry: -3, rz: 0, fade: 1 }
-    expect(transformOf(p, box)).toBe(
-      'translate3d(0.00px,0.00px,0) scale(1.0000) rotateX(10.00deg) rotateY(-3.00deg) rotateZ(0.00deg)',
-    )
+    const p = { cx: 200, cy: 419.5, scale: 1, rx: 10, ry: -3, fade: 1 }
+    expect(transformOf(p, box)).toBe('translate3d(0.00px,0.00px,0) scale(1.0000) rotateX(10.00deg) rotateY(-3.00deg)')
   })
 })
 

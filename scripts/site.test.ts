@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fromMarkdown } from 'mdast-util-from-markdown'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { SHORTEST_SCREEN } from '../site/src/lib/track'
+import { NARROW_QUERY, SHORTEST_SCREEN } from '../site/src/lib/track'
 import { build, escape, expand, fill, plainText, render, resolveLink, sitePlugin } from './site.mjs'
 
 const repository = 'owner/name'
@@ -350,6 +350,18 @@ describe('build with the repository', () => {
     }
   })
 
+  it('keeps the unprefixed backdrop-filter that the minifier would fold into the prefixed one', () => {
+    const sheets = readdirSync(join(site.folder, '_site/assets')).filter((name) => name.endsWith('.css'))
+    expect(sheets).toHaveLength(2)
+    for (const name of sheets) {
+      const sheet = site.read(`assets/${name}`)
+      const prefixed = sheet.match(/-webkit-backdrop-filter:/g) ?? []
+      const unprefixed = sheet.match(/(?<!-webkit-)backdrop-filter:/g) ?? []
+      expect(unprefixed.length, name).toBeGreaterThan(0)
+      expect(unprefixed.length, name).toBe(prefixed.length)
+    }
+  })
+
   it.each(ENTRIES)('gives %s no canonical and no og: tag without a site URL', (path) => {
     expect(site.read(path)).not.toMatch(/rel="canonical"|property="og:/)
   })
@@ -453,6 +465,19 @@ describe('the style sheets of the site', () => {
 
   it.each(sheets)('%s writes no colour of its own and no light palette', (_, sheet) => {
     expect(sheet).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|prefers-color-scheme/i)
+  })
+
+  it('turns narrow at the width the script reads from the same media query', () => {
+    const queries = sheets.flatMap(([, sheet]) => [...sheet.matchAll(/@media ([^{]*\b980[^{]*?) \{/g)].map((m) => m[1]))
+    expect(queries.length).toBeGreaterThan(0)
+    expect(new Set(queries)).toEqual(new Set([NARROW_QUERY]))
+  })
+
+  it('scrolls smoothly to an anchor only for who has not asked for less motion', () => {
+    const smooth = sheets.flatMap(([, sheet]) => sheet.match(/scroll-behavior: smooth/g) ?? [])
+    expect(smooth).toHaveLength(1)
+    const base = readFileSync(join(folder, 'base.css'), 'utf8')
+    expect(base).toMatch(/@media \(prefers-reduced-motion: no-preference\) \{\s*[^{}]+\{\s*scroll-behavior: smooth;/)
   })
 
   it('gives the browser the colour of the ground', () => {

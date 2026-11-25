@@ -1,7 +1,6 @@
 import { all, one, paint } from './paint'
 import type { Scroll } from './scroll'
 import { easeOut, mix, span } from '../lib/math'
-import { WIDE_SCREEN } from '../lib/track'
 
 interface Caption {
   id: string
@@ -37,7 +36,7 @@ export class Captions {
     const opacity = enter * (1 - leave)
     const y = (1 - enter) * 44 - leave * 34 + Math.sin(time * 0.8) * 3 * opacity
     const x = (1 - enter) * 26 * side
-    const wide = this.scroll.width >= WIDE_SCREEN
+    const wide = this.scroll.wide
     paint(cap, 'opacity', opacity.toFixed(3))
     paint(title, 'font-stretch', `${mix(72, 118, easeOut(span(p, 0.02, 0.17))).toFixed(1)}%`)
     paint(

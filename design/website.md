@@ -87,6 +87,12 @@ the new look.
   are dark, and one site should not have two looks. The dark contrasts measured on 2026-11-17 still hold on the
   ground (`--text` 16.83, `--soft` 10.23, `--accent` 7.85); on a card's `--raised` they are 14.05, 8.54 and 6.55, and
   `--muted`, the small print, 6.23 and 5.20, all above AA's 4.5.
+- **Glass is written unprefixed only**: `backdrop-filter`, and the minifier (lightningcss under Vite's default
+  targets) adds `-webkit-backdrop-filter` for Safari. A rule that declared both lost the unprefixed one to the
+  minifier, which folded the pair into the prefixed property that Chrome and Firefox ignore; a test reads the built
+  CSS for it.
+- **Smooth scrolling to an anchor** only under `prefers-reduced-motion: no-preference`, and not while the motion
+  runs, whose script follows the native scroll.
 - **A wash of `--brand` at 26 %** at the top of the viewport, fixed, on every page, and a glow that follows the phone.
   No GPU field: gpui's fluid is about 800 lines of WebGL for a background, and here the phone is the subject.
 
@@ -120,7 +126,12 @@ the new look.
   before What it needs reaches the middle of the screen.
 - **The screen changes between chapters, never under a caption**: from 0.97 of a chapter to 0.05 of the next, as the
   app pushes a screen, the new one slides in from the right over the old, which moves 30 % left and dims to half.
-- **On a narrow screen** (under 980 px) the caption is a glass sheet at the bottom, and the phone is sized by its width
+- **Wide or narrow comes from the style sheets' own media query**: `track.ts` exports `NARROW_QUERY`, `(max-width:
+  980px)`, which a test ties to every `980` query of the CSS, and `Scroll` reads it with `matchMedia` on each measure.
+  A width compared by hand disagreed with the CSS at exactly 980 px, and on systems with classic scrollbars, where
+  `clientWidth` leaves the scrollbar out and a media query does not (gpui has the same mismatch). The width stays the
+  geometry's.
+- **On a narrow screen** (980 px and under) the caption is a glass sheet at the bottom, and the phone is sized by its width
   (86 % of the area above the sheet) so the app's text stays readable. It is taller than that area, so a `focus` per
   chapter says which part of the screenshot sits in view, and the phone pans down slowly through the chapter (chat
   down to its options and keys).

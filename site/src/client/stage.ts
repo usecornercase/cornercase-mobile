@@ -29,7 +29,7 @@ export class Stage {
 
   measure(): void {
     this.box = { width: this.phone.offsetWidth, height: this.phone.offsetHeight }
-    this.keys = placeKeys(cameraKeys(this.scroll), this.box, this.scroll.width, this.scroll.height)
+    this.keys = placeKeys(cameraKeys(this.scroll), this.box, this.scroll.view())
     this.marks = screenMarks(this.scroll)
   }
 

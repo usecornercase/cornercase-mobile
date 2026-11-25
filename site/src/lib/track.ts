@@ -1,6 +1,6 @@
 import { easeInOut, mix, span } from './math'
 
-export const WIDE_SCREEN = 980
+export const NARROW_QUERY = '(max-width: 980px)'
 export const SHORTEST_SCREEN = 480
 
 const TOP = 76
@@ -22,8 +22,6 @@ export interface Shot {
   zoom?: number
   rx?: number
   ry?: number
-  rz?: number
-  dx?: number
   dy?: number
   fade?: number
 }
@@ -39,8 +37,13 @@ export interface Pose {
   scale: number
   rx: number
   ry: number
-  rz: number
   fade: number
+}
+
+export interface View {
+  width: number
+  height: number
+  wide: boolean
 }
 
 export interface PlacedKey {
@@ -62,14 +65,13 @@ function sheetHeight(height: number): number {
   return Math.min(height * 0.42, 320)
 }
 
-export function freeArea(free: Free, width: number, height: number): Rect {
-  const wide = width >= WIDE_SCREEN
+export function freeArea(free: Free, { width, height, wide }: View): Rect {
   const margin = wide ? 24 : 16
   const tall = Math.max(LEAST_ROOM, height - TOP - margin)
   if (free === 'screen') return [margin, TOP, width - margin * 2, tall]
   if (!wide) return [margin, TOP, width - margin * 2, Math.max(LEAST_ROOM, tall - sheetHeight(height))]
   const caption = captionWidth(width)
-  const across = width - caption - margin
+  const across = Math.max(LEAST_ROOM, width - caption - margin)
   return free === 'right' ? [caption, TOP, across, tall] : [margin, TOP, across, tall]
 }
 
@@ -84,18 +86,18 @@ function fitScale(area: Rect, box: Box, side: boolean): number {
   return Math.min(area[3] / box.height, area[2] / box.width, LARGEST)
 }
 
-function turnOf(shot: Shot): Pick<Pose, 'rx' | 'ry' | 'rz' | 'fade'> {
-  return { rx: shot.rx ?? 0, ry: shot.ry ?? 0, rz: shot.rz ?? 0, fade: shot.fade ?? 1 }
+function turnOf(shot: Shot): Pick<Pose, 'rx' | 'ry' | 'fade'> {
+  return { rx: shot.rx ?? 0, ry: shot.ry ?? 0, fade: shot.fade ?? 1 }
 }
 
-export function pose(shot: Shot, box: Box, width: number, height: number): Pose {
-  const area = freeArea(shot.free, width, height)
-  const side = width < WIDE_SCREEN && shot.free !== 'screen'
+export function pose(shot: Shot, box: Box, view: View): Pose {
+  const area = freeArea(shot.free, view)
+  const side = !view.wide && shot.free !== 'screen'
   const scale = fitScale(area, box, side) * (shot.zoom ?? 1)
   const cy = side ? narrowCentre(area, box.height * scale, shot.focus ?? 0.5) : area[1] + area[3] / 2
   return {
-    cx: area[0] + area[2] / 2 + (shot.dx ?? 0) * width,
-    cy: cy + (shot.dy ?? 0) * height,
+    cx: area[0] + area[2] / 2,
+    cy: cy + (shot.dy ?? 0) * view.height,
     scale,
     ...turnOf(shot),
   }
@@ -108,13 +110,12 @@ export function blend(a: Pose, b: Pose, amount: number): Pose {
     scale: a.scale * (b.scale / a.scale) ** amount,
     rx: mix(a.rx, b.rx, amount),
     ry: mix(a.ry, b.ry, amount),
-    rz: mix(a.rz, b.rz, amount),
     fade: mix(a.fade, b.fade, amount),
   }
 }
 
-export function placeKeys(keys: Key[], box: Box, width: number, height: number): PlacedKey[] {
-  return [...keys].sort((a, b) => a.at - b.at).map((key) => ({ at: key.at, pose: pose(key.shot, box, width, height) }))
+export function placeKeys(keys: Key[], box: Box, view: View): PlacedKey[] {
+  return [...keys].sort((a, b) => a.at - b.at).map((key) => ({ at: key.at, pose: pose(key.shot, box, view) }))
 }
 
 function around(keys: PlacedKey[], at: number): [PlacedKey, PlacedKey] {
@@ -139,8 +140,8 @@ export function poseAt(keys: PlacedKey[], at: number): Pose {
 }
 
 function turn(p: Pose): string {
-  if (p.rx === 0 && p.ry === 0 && p.rz === 0) return ''
-  return ` rotateX(${p.rx.toFixed(2)}deg) rotateY(${p.ry.toFixed(2)}deg) rotateZ(${p.rz.toFixed(2)}deg)`
+  if (p.rx === 0 && p.ry === 0) return ''
+  return ` rotateX(${p.rx.toFixed(2)}deg) rotateY(${p.ry.toFixed(2)}deg)`
 }
 
 export function transformOf(p: Pose, box: Box): string {

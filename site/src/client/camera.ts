@@ -1,4 +1,3 @@
-import { WIDE_SCREEN } from '../lib/track'
 import type { Free, Key, Shot } from '../lib/track'
 import type { Scroll } from './scroll'
 
@@ -56,7 +55,7 @@ function narrow(): Shots {
 }
 
 export function cameraKeys(scroll: Scroll): Key[] {
-  const shots = scroll.width < WIDE_SCREEN ? narrow() : wide()
+  const shots = scroll.wide ? wide() : narrow()
   const key = (id: string, progress: number, shot: Shot): Key => ({ at: scroll.at(id, progress), shot })
   const last = CHAPTERS[CHAPTERS.length - 1] as Chapter
   return [
