@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MARGIN, placed } from './popover'
+import { cycled, MARGIN, placed } from './popover'
 
 const VIEW = { width: 1024, height: 768 }
 
@@ -35,5 +35,25 @@ describe('placed', () => {
 
   it('takes another margin', () => {
     expect(placed(at(0, 0), CARD, VIEW, 24)).toEqual({ left: 24, top: 44 })
+  })
+})
+
+describe('cycled', () => {
+  const BUTTONS = ['cancel', 'close']
+
+  it.each([
+    ['moves forward', 'cancel', false, 'close'],
+    ['wraps forward past the last', 'close', false, 'cancel'],
+    ['moves back', 'close', true, 'cancel'],
+    ['wraps back past the first', 'cancel', true, 'close'],
+    ['starts at the first from outside', null, false, 'cancel'],
+    ['starts at the last from outside, going back', null, true, 'close'],
+    ['starts at the first from an element it does not hold', 'dialog', false, 'cancel'],
+  ])('%s', (_, current, back, next) => {
+    expect(cycled(BUTTONS, current, back)).toBe(next)
+  })
+
+  it('gives nothing with nothing to focus', () => {
+    expect(cycled([], null, false)).toBeUndefined()
   })
 })

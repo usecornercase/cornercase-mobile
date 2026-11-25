@@ -21,6 +21,8 @@ export type Closing =
 
 export type Progress = 'checking' | 'closing' | null
 
+export type Asker = 'board' | 'agent'
+
 export type Confirmation = { title: string; lines: string[] }
 
 export const UNANSWERED_WAIT_MS = 15_000
@@ -79,6 +81,7 @@ export class CloseAgent {
   #states = new SvelteMap<number, Entry>()
   #listed: readonly number[] = []
   #tickets = 0
+  #askers = new SvelteMap<number, { ticket: number; by: Asker }>()
   #calls: CloseCalls
   #tell: (toast: Toast) => void
   #onclosed: (panes: number[]) => void
@@ -100,6 +103,16 @@ export class CloseAgent {
     return this.#states.get(pane)
   }
 
+  askedBy(pane: number): Asker | undefined {
+    const asker = this.#askers.get(pane)
+    return asker !== undefined && this.#holds(pane, asker.ticket) ? asker.by : undefined
+  }
+
+  confirmingFor(pane: number, by: Asker) {
+    const state = this.askedBy(pane) === by ? this.#states.get(pane) : undefined
+    return state?.kind === 'confirming' || state?.kind === 'rechecking' ? state : null
+  }
+
   closing(pane: number) {
     return [...this.#states.values()].some((entry) => entry.kind === 'closing' && entry.panes.includes(pane))
   }
@@ -115,12 +128,13 @@ export class CloseAgent {
     return row.boot !== '' && !this.#states.has(row.pane) && !this.closing(row.pane)
   }
 
-  async ask(row: AgentRow) {
+  async ask(row: AgentRow, by: Asker) {
     if (!this.offered(row)) {
       return
     }
     const { pane, boot } = row
     const ticket = ++this.#tickets
+    this.#askers.set(pane, { ticket, by })
     this.#states.set(pane, { kind: 'checking', boot, ticket })
     const answer = await asked(() => this.#calls.closeAgentCheck(pane, boot))
     if (!this.#holds(pane, ticket)) {

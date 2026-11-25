@@ -17,3 +17,9 @@ export const placed = (anchor: Box, size: Size, viewport: Size, margin = MARGIN)
     top: within(top, size.height, viewport.height, margin),
   }
 }
+
+export const cycled = <T>(items: T[], current: T | null, back: boolean): T | undefined => {
+  const at = current === null ? -1 : items.indexOf(current)
+  if (at === -1) return back ? items.at(-1) : items[0]
+  return items[(at + (back ? -1 : 1) + items.length) % items.length]
+}

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AgentRow_Serialize as AgentRow, ConnectionView_Serialize } from '../../lib/bindings'
 import { subagents } from '../../lib/board'
 import type { Chat } from '../../lib/chat.svelte'
-import type { CloseAgent, Closing } from '../../lib/closeAgent.svelte'
+import type { Asker, CloseAgent, Closing } from '../../lib/closeAgent.svelte'
 import { closerAt } from '../../lib/closeFakes'
 import Agent from './Agent.svelte'
 import agentSource from './Agent.svelte?raw'
@@ -668,7 +668,8 @@ describe('Agent, closing its agent', () => {
     warning: null,
   }
 
-  const at = (kind: Closing['kind'] | 'idle', row: AgentRow = ROW) => closerAt(kind, [row], { ...PLAN, pane: row.pane })
+  const at = (kind: Closing['kind'] | 'idle', row: AgentRow = ROW, by: Asker = 'agent') =>
+    closerAt(kind, [row], { ...PLAN, pane: row.pane }, by)
 
   const shown = async (kind: Closing['kind'] | 'idle', connection = CONNECTED, row: AgentRow = ROW) =>
     draw(chatWith(row), 0, connection, null, [row], await at(kind, row))
@@ -685,6 +686,11 @@ describe('Agent, closing its agent', () => {
   const RESTING = { classes: 'quiet resting', attributes: 'type="button" disabled="" aria-disabled="true"', spinner: false }
 
   const dialog = (body: string) => body.match(/<div class="sheet svelte-[\w-]+" role="dialog" aria-modal="true" aria-label="([^"]+)"/)?.[1]
+
+  it('shows no confirmation the board asked for, which the board shows beside it in two panes', async () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, [ROW], await at('confirming', ROW, 'board'))
+    expect(dialog(body)).toBeUndefined()
+  })
 
   it('offers a quiet danger Close agent at the foot of the large header, named by its text for VoiceOver', async () => {
     const body = await shown('idle')
@@ -731,7 +737,7 @@ describe('Agent, closing its agent', () => {
       "const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)",
     )
     expect(source).toContain(
-      'const ask = (from: HTMLElement | null) => { if (row !== null && closable) { anchor = from void closer?.ask(row) } }',
+      'const ask = (from: HTMLElement | null) => { if (row !== null && closable) { anchor = from void closer?.ask(row, \'agent\') } }',
     )
   })
 

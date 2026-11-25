@@ -84,9 +84,7 @@
 
   const row = $derived(chat.row)
 
-  const closing = $derived(row === null ? undefined : closer?.stateOf(row.pane))
-
-  const asking = $derived(closing?.kind === 'confirming' || closing?.kind === 'rechecking' ? closing : null)
+  const asking = $derived(row === null ? null : (closer?.confirmingFor(row.pane, 'agent') ?? null))
 
   const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)
 
@@ -95,7 +93,7 @@
   const ask = (from: HTMLElement | null) => {
     if (row !== null && closable) {
       anchor = from
-      void closer?.ask(row)
+      void closer?.ask(row, 'agent')
     }
   }
 </script>

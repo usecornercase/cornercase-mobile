@@ -82,11 +82,15 @@ screens, the wide terminal, a hardware keyboard and a pointer, the close confirm
 ## Hardware keyboard
 
 - **Stray keys reach the terminal** (`Typing.stray`, `Typist.take`, a `keydown` on the document in the terminal's
-  screen): a key pressed while no field has the focus focuses the hidden field and is sent, so typing works without a
-  tap on the grid. Arrows, Esc, Tab, Enter and Ctrl+key go through `physical()`, a printable character without Cmd or
+  screen): a key that nothing else owns focuses the hidden field and is sent, so typing works without a tap on the
+  grid. Nothing owns it when it is aimed at the page (`body`, the root) or at the terminal's screen off any control,
+  and nothing handled it before (`strays` in `keyboard.svelte.ts`): a focused field, button, link, select or summary
+  keeps its keys, and so do the side and the popover, which are outside the screen. Until the review of 062 the
+  terminal took every key off a field, so Enter on a focused board row typed into the shell, and the popover's `Esc`
+  also reached the agent and interrupted it. Arrows, Esc, Tab, Enter and Ctrl+key go through `physical()`, a printable character without Cmd or
   Ctrl as text; Cmd shortcuts, bare modifiers, dead keys and composition stay the system's. A hardware `keydown`
   exists only with a hardware keyboard, so this never opens the on-screen keyboard on a touch-only device. It takes
-  Tab and Enter from a focused button of the terminal's screen, which a terminal needs.
+  Tab and Enter only once the focus has left the controls, on the page or the grid.
 - **Cmd+Return or Ctrl+Return sends in the chat** (`sendsOn`), Return still adds a line (`design/chat/answering.md`).
 
 ## Pointer
@@ -103,7 +107,14 @@ screens, the wide terminal, a hardware keyboard and a pointer, the close confirm
   `Glass` card with its four corners rounded, 360 px wide (never wider than the window less 24 px), under what opened
   it and left-aligned to it, or above it when there is no room below, kept 12 px inside the window; centred with no
   anchor. No veil: the layer behind is transparent and a tap on it cancels. It rises in and fades out like a card.
-  `Esc` cancels, in both modes. Narrow, it is the bottom sheet it was. Its anchors: the board's row, the chat's
+  It is placed again on every resize and on every scroll (in capture, so the side's own scroll counts), since a
+  trackpad's or a wheel's scroll goes through the clear layer and moves the anchor. `Esc` cancels, in both modes, and
+  goes no further; Tab stays among its own buttons (`cycled` in `popover.ts`), and on closing the focus goes back to
+  what had it before, the row or `Close agent`. Narrow, it is the bottom sheet it was.
+- **Only the screen that asked shows the confirmation**: in two panes the board and the chosen agent's screen are both
+  mounted with the one `CloseAgent`, so each one's ask names it (`ask(row, 'board' | 'agent')`, `askedBy`,
+  `confirmingFor`), kept by the ask's ticket, and each screen shows only its own. Before the review of 062 both showed
+  every confirming pane, so closing the chosen agent from either side opened two dialogs. Its anchors: the board's row, the chat's
   `Close agent`. "Sheets and menus" of the task is this one: it is the app's only sheet, there are no menus, and the
   native `select`s already open as system popovers on an iPad.
 

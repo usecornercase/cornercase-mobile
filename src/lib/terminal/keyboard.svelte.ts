@@ -26,7 +26,24 @@ export const seen = (screen: Screen, before?: Tallest): Seen => {
 
 const FIELDS = 'textarea, input, [contenteditable]'
 
-export const isField = (target: EventTarget | null) => (target as Partial<Element> | null)?.matches?.(FIELDS) ?? false
+const CONTROLS = 'button, a, select, summary, [role="button"]'
+
+const matching = (target: EventTarget | null, selector: string) =>
+  (target as Partial<Element> | null)?.matches?.(selector) ?? false
+
+const isField = (target: EventTarget | null) => matching(target, FIELDS)
+
+export type Page = { body: unknown; documentElement: unknown }
+
+export const strays = (
+  { target, defaultPrevented }: Pick<Event, 'target' | 'defaultPrevented'>,
+  screen: Pick<Node, 'contains'> | null,
+  page: Page | undefined = globalThis.document,
+) => {
+  if (defaultPrevented || matching(target, `${FIELDS}, ${CONTROLS}`)) return false
+  if (target === page?.body || target === page?.documentElement) return true
+  return screen?.contains(target as Node | null) ?? false
+}
 
 const editingNow = () => isField(globalThis.document?.activeElement ?? null)
 

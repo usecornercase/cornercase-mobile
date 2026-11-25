@@ -205,8 +205,9 @@ describe('fitting the pane to the phone', () => {
   })
 
   it('hands a key pressed off any field to the typist, so a hardware keyboard types without a tap', () => {
-    expect(source).toContain('const stray = (event: KeyboardEvent) => { if (!isField(event.target)) { typist?.take(event) } }')
+    expect(source).toContain('const stray = (event: KeyboardEvent) => { if (strays(event, screen)) { typist?.take(event) } }')
     expect(source).toContain('<svelte:document onkeydown={stray} />')
+    expect(source).toContain('<section bind:this={screen} class="screen"')
   })
 
   it('offers no Full width in a narrow window', () => {

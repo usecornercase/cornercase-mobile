@@ -6,7 +6,7 @@ import type {
   ConnectionView_Serialize,
 } from '../../lib/bindings'
 import { boardSearch } from '../../lib/boardSearch.svelte'
-import type { CloseAgent, Closing } from '../../lib/closeAgent.svelte'
+import type { Asker, CloseAgent, Closing } from '../../lib/closeAgent.svelte'
 import { closerAt as closingAt } from '../../lib/closeFakes'
 import { folds } from '../../lib/folds.svelte'
 import hiddenSource from '../../lib/ui/Hidden.svelte?raw'
@@ -519,7 +519,8 @@ describe('Closing an agent from the board', () => {
     warning: null,
   }
 
-  const closerAt = (kind: Closing['kind'] | 'idle', rows: Agent[] = BRANCH) => closingAt(kind, rows, PLAN)
+  const closerAt = (kind: Closing['kind'] | 'idle', rows: Agent[] = BRANCH, by: Asker = 'board') =>
+    closingAt(kind, rows, PLAN, by)
 
   const CLOSE = /<button class="close svelte-[\w-]+ eased" type="button" tabindex="-1" aria-hidden="true" style="width: 88px; --reveal: 0px;">\s*Close\s*<\/button>/g
 
@@ -594,6 +595,11 @@ describe('Closing an agent from the board', () => {
     )
   })
 
+  it("shows no confirmation the agent's screen asked for, which that screen shows beside it in two panes", async () => {
+    const body = draw(BRANCH, CONNECTED, 0, 64, await closerAt('confirming', BRANCH, 'agent'))
+    expect(dialog(body)).toBeUndefined()
+  })
+
   it('never slides the section headers or the search field', async () => {
     const body = draw(BRANCH, CONNECTED, 0, unfolded(65, 1, 2), await closerAt('idle'))
     expect(body.match(/<div class="layer/g)).toHaveLength(3)
@@ -624,7 +630,7 @@ describe('Closing an agent from the board', () => {
     expect(source).toContain('ondrag: (next) => (dragged = closable ? next : null), onsettle: (next) => onswipe(row.pane, closable && next),')
     const board = flat(boardSource)
     expect(board).toContain('const gesture = rowGesture(platform)')
-    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() anchor = from void closer.ask(row)")
+    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() anchor = from void closer.ask(row, 'board')")
     expect(board).toContain('const ask = (row: Agent, from: HTMLElement | null) => {')
   })
 

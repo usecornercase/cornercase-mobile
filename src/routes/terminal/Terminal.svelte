@@ -11,7 +11,7 @@
   import { label, place } from '../../lib/board'
   import { ShownCtrl } from '../../lib/terminal/ctrl.svelte'
   import { Fit } from '../../lib/terminal/fit.svelte'
-  import { isField, Keyboard, whileClosed } from '../../lib/terminal/keyboard.svelte'
+  import { Keyboard, strays, whileClosed } from '../../lib/terminal/keyboard.svelte'
   import KeyRow from '../../lib/terminal/KeyRow.svelte'
   import { Opening } from '../../lib/terminal/opening'
   import { Pane, shows } from '../../lib/terminal/pane.svelte'
@@ -55,8 +55,10 @@
   let typist: Typist | undefined
   const fitted = whileClosed(keyboard, (size: Size_Deserialize) => (wanted = size))
 
+  let screen = $state<HTMLElement | null>(null)
+
   const stray = (event: KeyboardEvent) => {
-    if (!isField(event.target)) {
+    if (strays(event, screen)) {
       typist?.take(event)
     }
   }
@@ -94,6 +96,7 @@
 <svelte:document onkeydown={stray} />
 
 <section
+  bind:this={screen}
   class="screen"
   class:keyboard={keyboard.covered}
   class:sliding={shift.x > 0}

@@ -123,13 +123,13 @@
     }
     shut()
     anchor = from
-    void closer.ask(row)
+    void closer.ask(row, 'board')
   }
 
   const asking = $derived.by(() => {
     for (const row of agents ?? []) {
-      const state = closer?.stateOf(row.pane)
-      if (state?.kind === 'confirming' || state?.kind === 'rechecking') {
+      const state = closer?.confirmingFor(row.pane, 'board') ?? null
+      if (state !== null) {
         return { row, state }
       }
     }

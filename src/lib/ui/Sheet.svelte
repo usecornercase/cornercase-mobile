@@ -4,7 +4,7 @@
   import Glass from './Glass.svelte'
   import { fadeOut, riseIn, sheetIn, sheetOut, veilIn, veilOut } from './motion'
   import { overPage } from './overPage'
-  import { placed, type Spot } from './popover'
+  import { cycled, placed, type Spot } from './popover'
 
   let {
     label,
@@ -19,15 +19,40 @@
 
   const floating = $derived(layout.wide)
 
-  const focused = (node: HTMLElement) => node.focus({ preventScroll: true })
+  const FOCUSABLE = 'button:not(:disabled), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+  const focused = (node: HTMLElement) => {
+    const before = document.activeElement
+    node.focus({ preventScroll: true })
+    return () => {
+      if (before instanceof HTMLElement && before.isConnected) {
+        before.focus({ preventScroll: true })
+      }
+    }
+  }
+
+  const trapped = (event: KeyboardEvent, dialog: HTMLElement) => {
+    const items = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE)]
+    const now = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const next = cycled(items, now, event.shiftKey)
+    if (next !== undefined) {
+      event.preventDefault()
+      next.focus()
+    }
+  }
 
   const entering = (node: Element) => (floating ? riseIn(node) : sheetIn(node))
 
   const leaving = (node: Element) => (floating ? fadeOut(node) : sheetOut(node))
 
-  const escaped = (event: KeyboardEvent) => {
+  const keyed = (event: KeyboardEvent & { currentTarget: HTMLElement }) => {
     if (event.key === 'Escape') {
+      event.preventDefault()
+      event.stopPropagation()
       oncancel()
+    }
+    if (event.key === 'Tab') {
+      trapped(event, event.currentTarget)
     }
   }
 
@@ -39,9 +64,14 @@
       return
     }
     const place = () => (spot = placed(from.getBoundingClientRect(), size, { width: innerWidth, height: innerHeight }))
+    const scrolling = { capture: true, passive: true }
     place()
     addEventListener('resize', place)
-    return () => removeEventListener('resize', place)
+    addEventListener('scroll', place, scrolling)
+    return () => {
+      removeEventListener('resize', place)
+      removeEventListener('scroll', place, scrolling)
+    }
   })
 </script>
 
@@ -68,7 +98,7 @@
     tabindex="-1"
     bind:clientWidth={width}
     bind:clientHeight={height}
-    onkeydown={escaped}
+    onkeydown={keyed}
     {@attach focused}
     in:entering
     out:leaving

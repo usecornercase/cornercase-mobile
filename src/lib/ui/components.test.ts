@@ -88,8 +88,19 @@ describe('Sheet', () => {
   })
 
   it('cancels on Escape, from a hardware keyboard', () => {
-    expect(flat(sheetSource)).toContain("const escaped = (event: KeyboardEvent) => { if (event.key === 'Escape') { oncancel() } }")
-    expect(flat(sheetSource)).toContain('onkeydown={escaped}')
+    expect(flat(sheetSource)).toContain(
+      "if (event.key === 'Escape') { event.preventDefault() event.stopPropagation() oncancel() }",
+    )
+    expect(flat(sheetSource)).toContain('onkeydown={keyed}')
+  })
+
+  it('keeps Tab among its own buttons, and gives the focus back to what had it once it closes', () => {
+    const source = flat(sheetSource)
+    expect(source).toContain("if (event.key === 'Tab') { trapped(event, event.currentTarget) }")
+    expect(source).toContain('const next = cycled(items, now, event.shiftKey)')
+    expect(source).toContain(
+      'const before = document.activeElement node.focus({ preventScroll: true }) return () => { if (before instanceof HTMLElement && before.isConnected) { before.focus({ preventScroll: true }) } }',
+    )
   })
 
   it('floats as a card with all its corners rounded in a wide window, over a clear layer that still cancels', () => {
@@ -104,7 +115,7 @@ describe('Sheet', () => {
     const source = flat(sheetSource)
     expect(source).toContain('const floating = $derived(layout.wide)')
     expect(source).toContain(
-      "const place = () => (spot = placed(from.getBoundingClientRect(), size, { width: innerWidth, height: innerHeight })) place() addEventListener('resize', place) return () => removeEventListener('resize', place)",
+      "const place = () => (spot = placed(from.getBoundingClientRect(), size, { width: innerWidth, height: innerHeight })) const scrolling = { capture: true, passive: true } place() addEventListener('resize', place) addEventListener('scroll', place, scrolling) return () => { removeEventListener('resize', place) removeEventListener('scroll', place, scrolling) }",
     )
     expect(source).toContain('const entering = (node: Element) => (floating ? riseIn(node) : sheetIn(node))')
     expect(source).toContain('const leaving = (node: Element) => (floating ? fadeOut(node) : sheetOut(node))')
