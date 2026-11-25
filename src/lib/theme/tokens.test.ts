@@ -82,6 +82,14 @@ describe('tokens', () => {
     ['--radius-card', '12px'],
     ['--radius-sheet', '16px'],
     ['--inset-card', '28px'],
+    ['--side', 'calc(clamp(320px, 30vw, 380px) + env(safe-area-inset-left))'],
+    ['--column', '760px'],
+    ['--form', '520px'],
+    ['--pane-left', '0px'],
+    ['--pane-width', '100vw'],
+    ['--pane-safe-left', 'env(safe-area-inset-left)'],
+    ['--gutter', 'max(var(--inset-wide), calc((var(--pane-width) - var(--column)) / 2))'],
+    ['--gutter-form', 'max(var(--inset-wide), calc((var(--pane-width) - var(--form)) / 2))'],
   ])('%s is %s', (name, expected) => {
     expect(value(name)).toBe(expected)
   })
@@ -121,6 +129,14 @@ describe('base styles', () => {
       '.spoken { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }',
     )
     expect(Object.values(sources).filter((text) => text.includes('.spoken {'))).toHaveLength(1)
+  })
+
+  it('moves the pane right of the side in two panes, on the root so the gutters follow', () => {
+    const style = base.replace(/\s+/g, ' ')
+    expect(style).toContain(
+      'html.split { --pane-left: var(--side); --pane-width: calc(100vw - var(--side)); --pane-safe-left: 0px; }',
+    )
+    expect(style).toContain('html.split body { padding-left: 0; }')
   })
 
   it('keeps the brand wash fixed, 180 px tall, fading from 12 % to 0', () => {

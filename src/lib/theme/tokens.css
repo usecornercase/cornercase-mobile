@@ -44,6 +44,15 @@
   --inset-wide: 16px;
   --inset-card: 28px;
 
+  --side: calc(clamp(320px, 30vw, 380px) + env(safe-area-inset-left));
+  --column: 760px;
+  --form: 520px;
+  --pane-left: 0px;
+  --pane-width: 100vw;
+  --pane-safe-left: env(safe-area-inset-left);
+  --gutter: max(var(--inset-wide), calc((var(--pane-width) - var(--column)) / 2));
+  --gutter-form: max(var(--inset-wide), calc((var(--pane-width) - var(--form)) / 2));
+
   --font-ui: system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 

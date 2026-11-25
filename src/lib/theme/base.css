@@ -29,6 +29,16 @@ body::before {
   pointer-events: none;
 }
 
+html.split {
+  --pane-left: var(--side);
+  --pane-width: calc(100vw - var(--side));
+  --pane-safe-left: 0px;
+}
+
+html.split body {
+  padding-left: 0;
+}
+
 html.scanning,
 html.scanning body {
   background: transparent;
