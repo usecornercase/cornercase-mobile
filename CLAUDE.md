@@ -34,6 +34,8 @@ pnpm check                                        # svelte-check, then tsc on vi
 pnpm lint                                         # eslint, then scripts/check-rules.mjs (1,000 lines, comments)
 npx -y jscpd@4.3.0                                # copy-paste detector, reads .jscpd.json
 pnpm test                                         # vitest
+pnpm site                                         # the website to _site/; needs GITHUB_REPOSITORY=owner/name
+pnpm site:dev                                     # the website on Vite's dev server; needs GITHUB_REPOSITORY too
 scripts/ios-release.sh                            # build the iPhone app and upload it to TestFlight (--help)
 ```
 
@@ -87,6 +89,8 @@ scripts/ios-release.sh                            # build the iPhone app and upl
 - `src-tauri/`: the app shell: Tauri commands and events, key storage (Keychain / Keystore), lifecycle
   and network-change hooks, mobile projects.
 - `src/`: the Svelte UI.
+- `site/`: the website on GitHub Pages (landing, privacy, support), built by `scripts/site.mjs` with Vite
+  (`design/website.md`).
 - `design/`, `DESIGN.md`: decisions by area.
 
 ## Code rules

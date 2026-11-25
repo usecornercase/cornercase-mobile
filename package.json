@@ -11,10 +11,13 @@
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
     "lint": "eslint . && node scripts/check-rules.mjs",
     "test": "vitest run",
+    "site": "node scripts/site.mjs",
+    "site:dev": "node scripts/site.mjs --dev",
     "tauri": "tauri"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@fontsource-variable/archivo": "^5.3.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tauri-apps/cli": "^2.12.4",
     "eslint": "^10.14.0",
