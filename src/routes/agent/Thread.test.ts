@@ -369,6 +369,12 @@ describe('Thread', () => {
     expect(source).toContain('<article class="message" bind:this={messages[entry.id]}>')
   })
 
+  it('starts with nothing drawn, so the first conversation, send and answer it sees are told apart', () => {
+    expect(flat(threadSource)).toContain(
+      'let drawn = false let shownSend: Outgoing | null = null let shownAnswer: AgentEntry | null = null',
+    )
+  })
+
   it('draws without the bar, which it only measures', () => {
     expect(flat(threadSource)).toContain('bar = null,')
     expect(thread(chatWith(ROW))).toMatch(/<div class="thread svelte-[\w-]+">/)

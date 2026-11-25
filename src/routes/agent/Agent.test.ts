@@ -167,6 +167,7 @@ describe('Agent, its subagents', () => {
 
   it("hands the header's bar to the thread, to measure where a message starts", () => {
     expect(flat(agentSource)).toContain('let bar = $state<HTMLElement | null>(null)')
+    expect(flat(chatHeaderSource)).toContain('bar = $bindable(null),')
   })
 
   it('follows the rows as they change', () => {
