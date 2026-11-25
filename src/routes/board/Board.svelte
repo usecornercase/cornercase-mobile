@@ -24,6 +24,7 @@
     agents,
     connection,
     closer,
+    selected = null,
     below = 0,
     onopen,
     onstart,
@@ -32,6 +33,7 @@
     agents: Agent[] | null
     connection: ConnectionView_Serialize
     closer: CloseAgent | null
+    selected?: number | null
     below?: number
     onopen: (pane: number) => void
     onstart: () => void
@@ -69,6 +71,7 @@
   const gesture = rowGesture(platform)
 
   let swiped = $state<{ pane: number; at: number } | null>(null)
+  let anchor = $state<HTMLElement | null>(null)
 
   const placeOf = (pane: number) => shown.findIndex((item) => item.kind === 'row' && item.row.pane === pane)
 
@@ -111,7 +114,7 @@
 
   const opens = (row: Agent) => swiped?.pane === row.pane && closes(row) && closer?.offered(row) === true
 
-  const ask = (row: Agent) => {
+  const ask = (row: Agent, from: HTMLElement | null) => {
     if (closer === null || !closes(row) || !closer.offered(row)) {
       return
     }
@@ -119,13 +122,14 @@
       void tap(haptics)
     }
     shut()
-    void closer.ask(row)
+    anchor = from
+    void closer.ask(row, 'board')
   }
 
   const asking = $derived.by(() => {
     for (const row of agents ?? []) {
-      const state = closer?.stateOf(row.pane)
-      if (state?.kind === 'confirming' || state?.kind === 'rechecking') {
+      const state = closer?.confirmingFor(row.pane, 'board') ?? null
+      if (state !== null) {
         return { row, state }
       }
     }
@@ -166,6 +170,7 @@
                 {item}
                 {agents}
                 {now}
+                current={selected === item.row.pane}
                 gesture={gestureOf(item.row)}
                 closable={closer?.offered(item.row) ?? false}
                 open={opens(item.row)}
@@ -187,6 +192,7 @@
       plan={asking.state.plan}
       label={label(asking.row, agents ?? [])}
       rechecking={asking.state.kind === 'rechecking'}
+      {anchor}
       oncancel={() => closer?.cancel(pane)}
       onconfirm={() => void closer?.confirm(pane)}
     />

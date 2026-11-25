@@ -50,6 +50,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .line:hover {
+    background: var(--hover);
+  }
+
   .count {
     flex: 1;
     min-width: 0;

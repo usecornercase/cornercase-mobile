@@ -151,7 +151,7 @@ const one = (source: string) => source.replace(/\s+/g, ' ')
 describe('Issues', () => {
   it('heads the screen with Issues in the shared bar, going back to Start', () => {
     const body = screenOf({})
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Start"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column"[^]*?aria-label="Back to Start"/)
     expect(body).toMatch(/<h1 class="title svelte-[\w-]+">Issues<\/h1>/)
   })
 

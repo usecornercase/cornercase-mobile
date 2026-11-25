@@ -15,6 +15,8 @@
     below = 0,
     fixed = true,
     topmost = false,
+    rooted = false,
+    measure = 'full',
     edge = false,
     variant = platform,
   }: {
@@ -26,6 +28,8 @@
     below?: number
     fixed?: boolean
     topmost?: boolean
+    rooted?: boolean
+    measure?: 'full' | 'column' | 'form'
     edge?: boolean
     variant?: Platform
   } = $props()
@@ -37,14 +41,24 @@
   const fits = $derived(fitsLabel(labelWidth, room - TAP))
 </script>
 
-<div class="bar {variant}" class:fixed class:topmost={fixed && topmost} class:edge style:--below="{below}px">
+<div
+  class="bar {variant}"
+  class:fixed
+  class:topmost={fixed && topmost}
+  class:column={measure === 'column'}
+  class:form={measure === 'form'}
+  class:edge
+  style:--below="{below}px"
+>
   <div class="start" bind:clientWidth={room}>
-    <button class="back" type="button" aria-label={backLabel(backTo)} onclick={onback} ontouchstart={() => {}}>
-      <Icon name={ios ? 'chevron-left' : 'arrow-left'} />
-      {#if ios && backTo !== null}
-        <span class="label" class:hidden={!fits} bind:clientWidth={labelWidth}>{backTo}</span>
-      {/if}
-    </button>
+    {#if !rooted}
+      <button class="back" type="button" aria-label={backLabel(backTo)} onclick={onback} ontouchstart={() => {}}>
+        <Icon name={ios ? 'chevron-left' : 'arrow-left'} />
+        {#if ios && backTo !== null}
+          <span class="label" class:hidden={!fits} bind:clientWidth={labelWidth}>{backTo}</span>
+        {/if}
+      </button>
+    {/if}
   </div>
   <div class="center">
     {#if title !== undefined}
@@ -86,6 +100,16 @@
     padding-top: calc(var(--gap) + env(safe-area-inset-top));
   }
 
+  .fixed.column {
+    margin-right: calc(-1 * var(--gutter));
+    margin-left: calc(-1 * var(--gutter));
+  }
+
+  .fixed.form {
+    margin-right: calc(-1 * var(--gutter-form));
+    margin-left: calc(-1 * var(--gutter-form));
+  }
+
   .edge {
     border-bottom-color: var(--border);
   }
@@ -115,6 +139,10 @@
   }
 
   .back:active {
+    background: var(--hover);
+  }
+
+  :global(html.pointing) .back:hover {
     background: var(--hover);
   }
 

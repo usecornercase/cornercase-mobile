@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { GAP, Keyboard, seen, whileClosed, type Screen, type Viewport } from './keyboard.svelte'
+import { GAP, Keyboard, seen, strays, whileClosed, type Screen, type Viewport } from './keyboard.svelte'
 
 const WIDTH = 411
 
@@ -213,6 +213,38 @@ describe('seen', () => {
 
   it('takes a taller page as the new tallest', () => {
     expect(seen(screen(FULL), { width: WIDTH, height: FULL - KEYBOARD }).tallest).toEqual({ width: WIDTH, height: FULL })
+  })
+})
+
+describe('strays', () => {
+  const OWNERS = ['textarea', 'input', '[contenteditable]', 'button', 'a', 'select', 'summary', '[role="button"]']
+  const element = (owner = '') => ({ matches: (selector: string) => owner !== '' && selector.split(', ').includes(owner) })
+  const page = { body: element(), documentElement: element() }
+  const inside = element()
+  const screen = { contains: (node: unknown) => node === inside }
+  const pressed = (target: unknown, defaultPrevented = false) => ({ target: target as EventTarget, defaultPrevented })
+
+  it.each([
+    ['on the page, with nothing focused', page.body, true],
+    ['on the root', page.documentElement, true],
+    ['inside the terminal, off any control', inside, true],
+    ['outside the terminal, in the side or a dialog', element(), false],
+    ['with no target', null, false],
+  ])('takes a key %s: %s', (_, target, taken) => {
+    expect(strays(pressed(target), screen, page)).toBe(taken)
+  })
+
+  it.each(OWNERS)('leaves a key on a focused %s to it', (owner) => {
+    const focused = element(owner)
+    expect(strays(pressed(focused), { contains: () => true }, page)).toBe(false)
+  })
+
+  it('leaves a key something already handled', () => {
+    expect(strays(pressed(page.body, true), screen, page)).toBe(false)
+  })
+
+  it('takes nothing off the page without a screen', () => {
+    expect(strays(pressed(inside), null, page)).toBe(false)
   })
 })
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AgentRow_Serialize as AgentRow, ConnectionView_Serialize } from '../../lib/bindings'
 import { subagents } from '../../lib/board'
 import type { Chat } from '../../lib/chat.svelte'
-import type { CloseAgent, Closing } from '../../lib/closeAgent.svelte'
+import type { Asker, CloseAgent, Closing } from '../../lib/closeAgent.svelte'
 import { closerAt } from '../../lib/closeFakes'
 import Agent from './Agent.svelte'
 import agentSource from './Agent.svelte?raw'
@@ -41,9 +41,11 @@ const draw = (
   starting: string | null = null,
   agents: AgentRow[] | null = null,
   closer: CloseAgent | null = null,
+  panes: { topmost?: boolean; rooted?: boolean } = {},
 ) =>
   render(Agent, {
     props: {
+      ...panes,
       chat,
       agents,
       connection,
@@ -172,11 +174,44 @@ describe('Agent, its subagents', () => {
   })
 })
 
-const BAR = /<div class="bar ios svelte-[\w-]+ fixed" style="--below: 0px;">(.*?)<\/div><!----> <header class="head svelte-[\w-]+">/
+const BAR = /<div class="bar ios svelte-[\w-]+ fixed column" style="--below: 0px;">(.*?)<\/div><!----> <header class="head svelte-[\w-]+">/
 
 const SHORT = /<div class="short svelte-[\w-]+" aria-hidden="true">(.*?)<\/div>/
 
 const bar = (row: AgentRow) => draw(chatWith(row)).match(BAR)?.[1] ?? ''
+
+describe('Agent, in two panes', () => {
+  it('shows no back button straight over the board, keeping the start of the bar', () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, null, null, { topmost: true, rooted: true })
+    expect(body).not.toMatch(BACK)
+    expect(body).toMatch(/<div class="start svelte-[\w-]+">(<!--[^>]*-->)*<\/div>/)
+  })
+
+  it('reaches its bar over the safe area, with no connection bar above it', () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, null, null, { topmost: true })
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column" style="--below: 0px;">/)
+    expect(body).toMatch(/<section class="agent svelte-[\w-]+ topmost"/)
+    expect(body).toMatch(BACK)
+  })
+
+  it('reaches over the safe area in every state of its bar', () => {
+    const body = draw(chatWith(null), 0, CONNECTED, null, null, null, { topmost: true, rooted: true })
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column" style="--below: 0px;">/)
+    expect(body).not.toMatch(/class="back /)
+  })
+
+  it('keeps the chat in a centred column, its bars and its composer across the pane', () => {
+    expect(flat(agentSource)).toContain('padding: calc(var(--below) + var(--inset)) var(--gutter) var(--inset-wide);')
+    expect(flat(agentSource).match(/measure="column"/g)).toHaveLength(2)
+    expect(flat(chatHeaderSource)).toContain('measure="column"')
+  })
+
+  it('lines the bar up with the top of the pane, keyboard or not', () => {
+    expect(flat(agentSource)).toContain(
+      '.topmost { padding-top: var(--gap); } .keyboard.topmost { padding-top: calc(env(safe-area-inset-top) + var(--gap)); }',
+    )
+  })
+})
 
 describe('Agent, its sticky header', () => {
   it('keeps Back at the start of the bar and Terminal, Changes, Files and New agent at its end, with the large header after it to scroll away', () => {
@@ -191,7 +226,7 @@ describe('Agent, its sticky header', () => {
   })
 
   it('starts large at the top of the page, below the connection bar', () => {
-    expect(draw(chatWith(ROW), 52)).toMatch(/<div class="bar ios svelte-[\w-]+ fixed" style="--below: 52px;"><div class="start/)
+    expect(draw(chatWith(ROW), 52)).toMatch(/<div class="bar ios svelte-[\w-]+ fixed column" style="--below: 52px;"><div class="start/)
   })
 
   it('carries a compact line between them, with the dot and the title, hidden from VoiceOver', () => {
@@ -211,7 +246,7 @@ describe('Agent, its sticky header', () => {
   it('turns compact past the large header, measured, following the page with a passive listener', () => {
     const source = flat(chatHeaderSource)
     expect(source).toContain('const compact = $derived(boxed || compactHeader(scrolled, tall))')
-    expect(source).toContain('<NavBar {backTo} {onback} {below} edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
+    expect(source).toContain('<NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}> {#snippet center()} <div class="short" class:compact aria-hidden="true">')
     expect(source).toContain('<header class="head" class:spoken={boxed} bind:clientHeight={tall}>')
     expect(source).toContain("const seen = () => (scrolled = window.scrollY) seen() window.addEventListener('scroll', seen, { passive: true })")
     expect(source).toContain("return () => window.removeEventListener('scroll', seen)")
@@ -356,10 +391,10 @@ describe('Agent, with the phone keyboard open', () => {
     expect(source).toContain('const keyboard = new Keyboard(globalThis)')
     expect(source).toContain('$effect(() => keyboard.watch())')
     expect(source).toContain(
-      'class:keyboard={seen !== null} style:--below="{below}px" style:top={seen === null ? undefined : `${keyboard.offset}px`} style:height={seen === null ? undefined : `${seen}px`} >',
+      'class:keyboard={seen !== null} class:topmost style:--below="{below}px" style:top={seen === null ? undefined : `${keyboard.offset}px`} style:height={seen === null ? undefined : `${seen}px`} >',
     )
     expect(source).toContain(
-      '.keyboard { position: fixed; right: 0; left: 0; min-height: 0; padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset));',
+      '.keyboard { position: fixed; right: 0; left: var(--pane-left); min-height: 0; padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset)); padding-right: calc(env(safe-area-inset-right) + var(--gutter)); padding-left: calc(var(--pane-safe-left) + var(--gutter)); }',
     )
   })
 
@@ -449,14 +484,14 @@ describe('Agent, without its row', () => {
 
   it('draws the bar of the shared NavBar in every state, with no text Button to go back', () => {
     const source = flat(agentSource)
-    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \/>/g)).toHaveLength(2)
+    expect(source.match(/<NavBar \{backTo\} \{onback\} \{below\} \{topmost\} \{rooted\} measure="column" \/>/g)).toHaveLength(2)
     expect(source).not.toContain('<Button tone="plain" onclick={onback}>')
   })
 
   it('offers opening the terminal and the changes of its agent, beside going back', () => {
     expect(draw(chatWith(ROW))).toMatch(TERMINAL)
     expect(flat(agentSource)).toContain(
-      "{:else} <ChatHeader {row} agents={agents ?? []} {backTo} {below} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
+      "{:else} <ChatHeader {row} agents={agents ?? []} {backTo} {below} {topmost} {rooted} boxed={seen !== null} sendable={connection.state === 'connected'} {closable} progress={closer?.progress(row.pane) ?? null} {onback} {onterminal} {onchanges} {onfiles} {onstart} onclose={ask} /> {#key row.pane}",
     )
     const source = flat(chatHeaderSource)
     expect(source).toContain('label="Terminal" icon="square-terminal" onclick={() => onterminal(row)}')
@@ -633,7 +668,8 @@ describe('Agent, closing its agent', () => {
     warning: null,
   }
 
-  const at = (kind: Closing['kind'] | 'idle', row: AgentRow = ROW) => closerAt(kind, [row], { ...PLAN, pane: row.pane })
+  const at = (kind: Closing['kind'] | 'idle', row: AgentRow = ROW, by: Asker = 'agent') =>
+    closerAt(kind, [row], { ...PLAN, pane: row.pane }, by)
 
   const shown = async (kind: Closing['kind'] | 'idle', connection = CONNECTED, row: AgentRow = ROW) =>
     draw(chatWith(row), 0, connection, null, [row], await at(kind, row))
@@ -650,6 +686,11 @@ describe('Agent, closing its agent', () => {
   const RESTING = { classes: 'quiet resting', attributes: 'type="button" disabled="" aria-disabled="true"', spinner: false }
 
   const dialog = (body: string) => body.match(/<div class="sheet svelte-[\w-]+" role="dialog" aria-modal="true" aria-label="([^"]+)"/)?.[1]
+
+  it('shows no confirmation the board asked for, which the board shows beside it in two panes', async () => {
+    const body = draw(chatWith(ROW), 0, CONNECTED, null, [ROW], await at('confirming', ROW, 'board'))
+    expect(dialog(body)).toBeUndefined()
+  })
 
   it('offers a quiet danger Close agent at the foot of the large header, named by its text for VoiceOver', async () => {
     const body = await shown('idle')
@@ -686,7 +727,7 @@ describe('Agent, closing its agent', () => {
     expect(dialog(body)).toBe('Close Fix the login flow?')
     expect(body).toContain('Nothing is deleted from disk')
     expect(flat(agentSource)).toContain(
-      "{#if asking !== null} {@const pane = row.pane} <CloseConfirm plan={asking.plan} label={label(row, agents ?? [])} rechecking={asking.kind === 'rechecking'} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} /> {/if}",
+      "{#if asking !== null} {@const pane = row.pane} <CloseConfirm plan={asking.plan} label={label(row, agents ?? [])} rechecking={asking.kind === 'rechecking'} {anchor} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} /> {/if}",
     )
   })
 
@@ -695,7 +736,14 @@ describe('Agent, closing its agent', () => {
     expect(source).toContain(
       "const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)",
     )
-    expect(source).toContain('const ask = () => { if (row !== null && closable) { void closer?.ask(row) } }')
+    expect(source).toContain(
+      'const ask = (from: HTMLElement | null) => { if (row !== null && closable) { anchor = from void closer?.ask(row, \'agent\') } }',
+    )
+  })
+
+  it('anchors the confirmation to the Close agent that opened it', () => {
+    expect(flat(chatHeaderSource)).toContain('<div class="close" class:spoken={boxed} bind:this={closing}>')
+    expect(flat(chatHeaderSource)).toContain("busy={progress === 'checking'} onclick={() => onclose(closing)}>")
   })
 
   it('leaves the button out of sight with the large header while the phone keyboard is open', () => {

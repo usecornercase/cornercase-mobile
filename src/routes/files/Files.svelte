@@ -30,7 +30,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} {title} {onback} topmost />
+  <NavBar {backTo} {title} {onback} topmost measure="column" />
   {#if files.gone}
     <p class="note">{CLOSED}.</p>
   {:else}
@@ -60,7 +60,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter) 40px;
   }
 
   .entries {

@@ -29,6 +29,16 @@ body::before {
   pointer-events: none;
 }
 
+html.split {
+  --pane-left: var(--side);
+  --pane-width: calc(100vw - var(--side));
+  --pane-safe-left: 0px;
+}
+
+html.split body {
+  padding-left: 0;
+}
+
 html.scanning,
 html.scanning body {
   background: transparent;
@@ -45,6 +55,10 @@ html.scanning #app {
 #app {
   position: relative;
   overflow-x: clip;
+}
+
+:where(button:not(:disabled), a, summary, select, label) {
+  cursor: pointer;
 }
 
 :where(button, a, summary, input[type='checkbox']):focus-visible {

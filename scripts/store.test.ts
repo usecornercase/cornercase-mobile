@@ -4,11 +4,18 @@ import { describe, expect, it } from 'vitest'
 
 const root = join(import.meta.dirname, '..')
 const store = join(root, 'store/app-store')
-const screenshots = join(store, 'screenshots/iphone-6.9')
+const screenshots = join(store, 'screenshots')
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
 type FileRef = { $file: string }
 type PngHeader = { width: number; height: number; colorType: number; chunks: string[] }
+type Sized = [number, number]
+
+const IPHONE_69: Sized[] = [[1320, 2868]]
+const IPAD_13: Sized[] = [
+  [2752, 2064],
+  [2064, 2752],
+]
 
 function isFileRef(value: unknown): value is FileRef {
   return typeof value === 'object' && value !== null && typeof (value as FileRef).$file === 'string'
@@ -51,9 +58,9 @@ function pngHeader(data: Buffer): PngHeader {
   return { width: data.readUInt32BE(16), height: data.readUInt32BE(20), colorType: data[25], chunks }
 }
 
-function screenshotProblems({ width, height, colorType, chunks }: PngHeader) {
+function screenshotProblems({ width, height, colorType, chunks }: PngHeader, sizes: Sized[]) {
   return [
-    width === 1320 && height === 2868 ? '' : `${width}x${height}`,
+    sizes.some(([w, h]) => w === width && h === height) ? '' : `${width}x${height}`,
     colorType === 2 ? '' : `colorType ${colorType}`,
     chunks.includes('tRNS') ? 'tRNS' : '',
   ].filter(Boolean)
@@ -157,11 +164,24 @@ describe('pngHeader', () => {
 
 describe('screenshotProblems', () => {
   it('accepts an RGB 1320x2868 image', () => {
-    expect(screenshotProblems(pngHeader(syntheticPng(1320, 2868, 2)))).toEqual([])
+    expect(screenshotProblems(pngHeader(syntheticPng(1320, 2868, 2)), IPHONE_69)).toEqual([])
+  })
+
+  it.each(IPAD_13)('accepts an RGB %ix%i image as a 13-inch iPad', (width, height) => {
+    expect(screenshotProblems(pngHeader(syntheticPng(width, height, 2)), IPAD_13)).toEqual([])
+  })
+
+  it('rejects an iPhone size for the iPad and an iPad size for the iPhone', () => {
+    expect(screenshotProblems(pngHeader(syntheticPng(1320, 2868, 2)), IPAD_13)).toEqual(['1320x2868'])
+    expect(screenshotProblems(pngHeader(syntheticPng(2064, 2752, 2)), IPHONE_69)).toEqual(['2064x2752'])
   })
 
   it('rejects another size, an alpha channel and a transparent colour', () => {
-    expect(screenshotProblems(pngHeader(syntheticPng(1290, 2796, 6, ['tRNS'])))).toEqual(['1290x2796', 'colorType 6', 'tRNS'])
+    expect(screenshotProblems(pngHeader(syntheticPng(1290, 2796, 6, ['tRNS'])), IPHONE_69)).toEqual([
+      '1290x2796',
+      'colorType 6',
+      'tRNS',
+    ])
   })
 })
 
@@ -229,16 +249,20 @@ describe('the App Store listing', () => {
   })
 })
 
-describe('the 6.9-inch iPhone screenshots', () => {
-  const names = readdirSync(screenshots).filter((name) => name.endsWith('.png'))
+describe.each([
+  ['6.9-inch iPhone', 'iphone-6.9', IPHONE_69],
+  ['13-inch iPad', 'ipad-13', IPAD_13],
+] as const)('the %s screenshots', (_, folder, sizes) => {
+  const set = join(screenshots, folder)
+  const names = readdirSync(set).filter((name) => name.endsWith('.png'))
 
   it('are 4 to 6', () => {
     expect(names.length).toBeGreaterThanOrEqual(4)
     expect(names.length).toBeLessThanOrEqual(6)
   })
 
-  it.each(names)('%s is RGB, 1320x2868, with no transparency', (name) => {
-    expect(screenshotProblems(pngHeader(readFileSync(join(screenshots, name))))).toEqual([])
+  it.each(names)('%s is RGB, of the set\'s size, with no transparency', (name) => {
+    expect(screenshotProblems(pngHeader(readFileSync(join(set, name))), [...sizes])).toEqual([])
   })
 })
 

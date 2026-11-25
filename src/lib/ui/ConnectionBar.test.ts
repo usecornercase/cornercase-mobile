@@ -105,6 +105,7 @@ describe('ConnectionBar', () => {
   it.each([
     'position: fixed; top: 0; left: 0; right: 0;',
     'padding-top: env(safe-area-inset-top);',
+    ':global(html.split) .connection { right: auto; box-sizing: border-box; width: var(--side); padding-left: env(safe-area-inset-left); }',
     'min-height: 44px;',
     'width: 44px; height: 44px;',
     'overflow: hidden; white-space: nowrap; text-overflow: ellipsis;',

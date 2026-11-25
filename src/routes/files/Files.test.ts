@@ -73,7 +73,7 @@ const hits = (body: string) => [...body.matchAll(/<span class="svelte-[\w-]+ hit
 describe('Files', () => {
   it("heads the tree with the workspace's name in the shared bar, going back to the chat, and the search field", async () => {
     const body = draw(await browsing())
-    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost"[^]*?aria-label="Back to Fix the login"/)
+    expect(body).toMatch(/<div class="bar ios svelte-[\w-]+ fixed topmost column"[^]*?aria-label="Back to Fix the login"/)
     expect(body).toMatch(/<div class="center svelte-[\w-]+">(<!--[^>]*-->)*<h1 class="title svelte-[\w-]+">login<\/h1>/)
     expect(body).toMatch(/<input class="query svelte-[\w-]+" type="search" aria-label="Search files"/)
   })

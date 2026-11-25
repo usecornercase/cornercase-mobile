@@ -34,7 +34,7 @@
   .toasts {
     position: fixed;
     top: 0;
-    left: 0;
+    left: var(--pane-left);
     right: 0;
     z-index: 10;
     display: flex;

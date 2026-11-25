@@ -13,6 +13,8 @@ type Props = {
   below?: number
   fixed?: boolean
   topmost?: boolean
+  rooted?: boolean
+  measure?: 'full' | 'column' | 'form'
   edge?: boolean
   variant?: Platform
 }
@@ -80,6 +82,12 @@ describe('NavBar', () => {
     expect(bar({ variant: 'ios' })).not.toContain('<h1')
   })
 
+  it('shows no back button when rooted, keeping the start so the centre stays in place', () => {
+    const body = bar({ rooted: true, title: 'tests', variant: 'ios' })
+    expect(body).not.toContain('class="back')
+    expect(body).toMatch(/<div class="start svelte-[\w-]+">(<!--[^>]*-->)*<\/div> <div class="center/)
+  })
+
   it('draws the center and right snippets in their places', () => {
     const body = bar({ title: 'tests', center: '<p>tab · place</p>', right: '<button>Fit</button>', variant: 'ios' })
     expect(body).toMatch(/<div class="center [^"]*">.*<h1[^>]*>tests<\/h1>.*<p>tab · place<\/p>.*<\/div>/s)
@@ -93,6 +101,8 @@ describe('NavBar', () => {
     ['stays in place when not fixed, even topmost', { fixed: false, topmost: true }, /<div class="bar ios svelte-[\w-]+" style="--below: 0px;">/],
     ['draws its edge', { edge: true, topmost: true }, /<div class="bar ios svelte-[\w-]+ fixed topmost edge" style="--below: 0px;">/],
     ['sits below a bar', { below: 32 }, /<div class="bar ios svelte-[\w-]+ fixed" style="--below: 32px;">/],
+    ['spans a column screen', { measure: 'column', topmost: true }, /<div class="bar ios svelte-[\w-]+ fixed topmost column" style="--below: 0px;">/],
+    ['spans a form screen', { measure: 'form' }, /<div class="bar ios svelte-[\w-]+ fixed form" style="--below: 0px;">/],
   ])('%s', (_, props, root) => {
     expect(bar({ ...props, variant: 'ios' })).toMatch(root)
   })
@@ -103,6 +113,9 @@ describe('NavBar', () => {
     'position: sticky; top: calc(env(safe-area-inset-top) + var(--below));',
     '.fixed.topmost { top: 0; margin-top: calc(-1 * var(--gap) - env(safe-area-inset-top)); padding-top: calc(var(--gap) + env(safe-area-inset-top)); }',
     '.edge { border-bottom-color: var(--border); }',
+    'margin: calc(-1 * var(--gap)) calc(-1 * var(--inset-wide)); padding: var(--gap) calc(var(--inset-wide) - var(--inset));',
+    '.fixed.column { margin-right: calc(-1 * var(--gutter)); margin-left: calc(-1 * var(--gutter)); }',
+    '.fixed.form { margin-right: calc(-1 * var(--gutter-form)); margin-left: calc(-1 * var(--gutter-form)); }',
     'min-width: 44px; min-height: 44px;',
     'color: var(--accent);',
     '.back:active { background: var(--hover); }',

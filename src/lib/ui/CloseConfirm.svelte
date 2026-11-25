@@ -8,12 +8,14 @@
     plan,
     label,
     rechecking = false,
+    anchor = null,
     oncancel,
     onconfirm,
   }: {
     plan: AgentClosing
     label: string
     rechecking?: boolean
+    anchor?: HTMLElement | null
     oncancel: () => void
     onconfirm: () => void
   } = $props()
@@ -21,7 +23,7 @@
   const text = $derived(confirmationText(plan, label))
 </script>
 
-<Sheet label={text.title} {oncancel}>
+<Sheet label={text.title} {anchor} {oncancel}>
   <h2 class="title">{text.title}</h2>
   {#each text.lines as line (line)}
     <p class="line">{line}</p>

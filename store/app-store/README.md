@@ -36,6 +36,7 @@ applied yet. The decisions behind it are in [design/releases/app-store.md](../..
 | `pricing.json` › `appAvailabilities`, `territoryAvailabilities` | every territory, and the new ones | `POST /v2/appAvailabilities`, with one `territoryAvailabilities` in `included` for each territory of `GET /v1/territories` |
 | `review.json` | App Review Information: contact, sign-in, notes | `GET /v1/appStoreVersions/{id}/appStoreReviewDetail`, then `PATCH /v1/appStoreReviewDetails/{id}`, or `POST /v1/appStoreReviewDetails` with the `appStoreVersion` relationship |
 | `screenshots/iphone-6.9/*.png` | the 6.9" iPhone screenshots, in their names' order | `POST /v1/appScreenshotSets` with `screenshotDisplayType` `APP_IPHONE_67` on the en-US version localization, then for each file `POST /v1/appScreenshots`, upload its parts, `PATCH /v1/appScreenshots/{id}` with `uploaded` and the checksum |
+| `screenshots/ipad-13/*.png` | the 13" iPad screenshots, in their names' order | the same calls, with `screenshotDisplayType` `APP_IPAD_PRO_3GEN_129` (the 13" iPad's sizes, 2064×2752 and 2752×2064, in OpenAPI 4.6.1) |
 | `review/demo.mp4` | the screen recording for App Review, not an app preview | `POST /v1/appStoreReviewAttachments` on the review detail, upload its parts, `PATCH /v1/appStoreReviewAttachments/{id}` with `uploaded` and the checksum |
 
 ## Order
@@ -53,7 +54,7 @@ applied yet. The decisions behind it are in [design/releases/app-store.md](../..
 - **The reviewer's contact** (`contactFirstName`, `contactLastName`, `contactPhone`, `contactEmail`): given at upload
   time only, never written into this repository.
 - **The terminal splits words** in `03-terminal` and the recording ("but t / he receipt"): the demo's sample has lines
-  longer than the phone's columns, and the demo wraps them at the last column, as a terminal does; `Fit to this phone`
+  longer than the phone's columns, and the demo wraps them at the last column, as a terminal does; `Fit to this screen`
   does not change it. Shorter lines in `crates/core/src/demo/data/questions.json` would fix it, out of this listing's
   scope; until then the screenshot is taken again as it is.
 
@@ -73,6 +74,9 @@ leaving out what is not about the iPhone, such as Android; that version adds `"w
 The screenshots are 1320×2868, the 6.9" iPhone's display (`APP_IPHONE_67`), which App Store Connect scales down to the
 smaller iPhones. App Store Connect may also ask for the "Dynamic Island (medium)" size: check it at upload time, and if
 it does, that is one more set from an iPhone 17 Pro or later.
+
+The iPad's are 2752×2064, the 13" iPad's display in landscape, the layout the app shows best there (two panes), from
+which App Store Connect scales down to the smaller iPads. Check at upload time whether it also asks for an 11" set.
 
 ## Regenerating the screenshots and the recording
 
@@ -98,6 +102,21 @@ With other simulators booted, give `simctl` the UDID, never `booted`.
    `Terminal`, `Changes`, `Files`, `Start`, `Leave demo`) or by point, built once with `xcodebuild build-for-testing`
    and run with `test-without-building`.
 6. **Each screen**: `xcrun simctl io <UDID> screenshot --type=png <file>`, once the screen has settled.
+   For the iPad, "cornercase store 13", an iPad Pro 13-inch (M5) on iOS 27.2 (`xcrun simctl create "cornercase store
+   13" com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB com.apple.CoreSimulator.SimRuntime.iOS-27-2`),
+   set up as in steps 2 to 4, the probe turns the device to landscape (`XCUIDevice.shared.orientation`) and writes
+   `XCUIScreen.main.screenshot()` itself (its folder passed as `TEST_RUNNER_SHOTS`). Those PNGs are RGB but stored
+   portrait with an EXIF orientation: `sips -r 270` turns them into 2752×2064, then step 7 drops their `eXIf` and
+   `iTXt`. A preview made with `sips -Z` from the raw file follows the EXIF and comes out turned; preview the final file.
+   - `01-board`: the board with `Show 2 subagents` open and "Add Apple Pay to the checkout" chosen, its chat beside it.
+   - `02-chat`: "Fix rounding in the cart totals", whose question card is waiting.
+   - `03-terminal`: its terminal, in the detail with `Full width` off.
+   - `04-changes`: "Add Apple Pay to the checkout" › Changes › `src/checkout/PaymentForm.tsx`.
+   - `05-start`: its `New agent`, a prompt typed in, the field left by tapping the `Agent` segment (the iPad's floating
+     shortcut bar counts as a keyboard and scrolls the bar away while the field has the focus).
+   - `06-files`: Files of that agent, with `src/checkout` open.
+
+   The iPhone's:
    - `01-board`: the demo's board with `Show 2 subagents` open.
    - `02-chat`: "Fix rounding in the cart totals", whose question card is waiting.
    - `03-terminal`: its terminal.

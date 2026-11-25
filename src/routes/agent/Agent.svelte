@@ -24,6 +24,8 @@
     closer,
     backTo,
     below = 0,
+    topmost = false,
+    rooted = false,
     starting = null,
     onback,
     onopen,
@@ -40,6 +42,8 @@
     closer: CloseAgent | null
     backTo: string | null
     below?: number
+    topmost?: boolean
+    rooted?: boolean
     starting?: string | null
     onback: () => void
     onopen: (pane: number) => void
@@ -80,15 +84,16 @@
 
   const row = $derived(chat.row)
 
-  const closing = $derived(row === null ? undefined : closer?.stateOf(row.pane))
-
-  const asking = $derived(closing?.kind === 'confirming' || closing?.kind === 'rechecking' ? closing : null)
+  const asking = $derived(row === null ? null : (closer?.confirmingFor(row.pane, 'agent') ?? null))
 
   const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)
 
-  const ask = () => {
+  let anchor = $state<HTMLElement | null>(null)
+
+  const ask = (from: HTMLElement | null) => {
     if (row !== null && closable) {
-      void closer?.ask(row)
+      anchor = from
+      void closer?.ask(row, 'agent')
     }
   }
 </script>
@@ -96,15 +101,16 @@
 <section
   class="agent"
   class:keyboard={seen !== null}
+  class:topmost
   style:--below="{below}px"
   style:top={seen === null ? undefined : `${keyboard.offset}px`}
   style:height={seen === null ? undefined : `${seen}px`}
 >
   {#if chat.gone}
-    <NavBar {backTo} {onback} {below} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" />
     <p class="gone">This agent is no longer running.</p>
   {:else if row === null}
-    <NavBar {backTo} {onback} {below} />
+    <NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" />
     {#if starting !== null}
       <p class="starting"><Spinner />Starting {starting}…</p>
     {:else}
@@ -118,6 +124,8 @@
       agents={agents ?? []}
       {backTo}
       {below}
+      {topmost}
+      {rooted}
       boxed={seen !== null}
       sendable={connection.state === 'connected'}
       {closable}
@@ -143,6 +151,7 @@
         plan={asking.plan}
         label={label(row, agents ?? [])}
         rechecking={asking.kind === 'rechecking'}
+        {anchor}
         oncancel={() => closer?.cancel(pane)}
         onconfirm={() => void closer?.confirm(pane)}
       />
@@ -157,17 +166,25 @@
     flex-direction: column;
     gap: var(--inset-wide);
     min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    padding: calc(var(--below) + var(--inset)) var(--inset-wide) var(--inset-wide);
+    padding: calc(var(--below) + var(--inset)) var(--gutter) var(--inset-wide);
   }
 
   .keyboard {
     position: fixed;
     right: 0;
-    left: 0;
+    left: var(--pane-left);
     min-height: 0;
     padding-top: calc(env(safe-area-inset-top) + var(--below) + var(--inset));
-    padding-right: calc(env(safe-area-inset-right) + var(--inset-wide));
-    padding-left: calc(env(safe-area-inset-left) + var(--inset-wide));
+    padding-right: calc(env(safe-area-inset-right) + var(--gutter));
+    padding-left: calc(var(--pane-safe-left) + var(--gutter));
+  }
+
+  .topmost {
+    padding-top: var(--gap);
+  }
+
+  .keyboard.topmost {
+    padding-top: calc(env(safe-area-inset-top) + var(--gap));
   }
 
   .floor {

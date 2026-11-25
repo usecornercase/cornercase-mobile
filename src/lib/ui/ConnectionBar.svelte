@@ -70,6 +70,13 @@
     backdrop-filter: blur(24px);
   }
 
+  :global(html.split) .connection {
+    right: auto;
+    box-sizing: border-box;
+    width: var(--side);
+    padding-left: env(safe-area-inset-left);
+  }
+
   .row {
     box-sizing: border-box;
     display: flex;
@@ -119,6 +126,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .leave:hover {
+    background: var(--hover);
+  }
+
   .machines {
     display: flex;
     flex: none;
@@ -135,6 +146,10 @@
   }
 
   .machines:active {
+    background: var(--hover);
+  }
+
+  :global(html.pointing) .machines:hover {
     background: var(--hover);
   }
 </style>

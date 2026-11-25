@@ -184,6 +184,22 @@ describe('Router.below', () => {
   })
 })
 
+describe('Router.base', () => {
+  it('is the first route, under every other', () => {
+    const router = new Router(HOME)
+    router.go(AGENT)
+    router.go(CHANGES)
+    expect(router.base).toEqual(HOME)
+  })
+
+  it('follows a new base', () => {
+    const router = new Router(HOME)
+    router.go(AGENT)
+    router.setBase(NO_MACHINES)
+    expect(router.base).toEqual(NO_MACHINES)
+  })
+})
+
 describe('Router.setBase with an agent or its terminal open', () => {
   it('stays on an agent while the connection settles on home', () => {
     const router = new Router(HOME)

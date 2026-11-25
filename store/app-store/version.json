@@ -11,7 +11,7 @@
       "attributes": {
         "description": { "$file": "en-US/description.txt" },
         "keywords": "developer,terminal,code review,diff,worktree,prompt,llm,programming,git,assistant,automation",
-        "promotionalText": "See which agents need you, answer their questions and start new work from your iPhone, while they keep running on your computer.",
+        "promotionalText": "See which agents need you, answer their questions and start new work from your iPhone or iPad, while they keep running on your computer.",
         "supportUrl": "https://usecornercase.github.io/cornercase-mobile/support/",
         "marketingUrl": "https://usecornercase.github.io/cornercase-mobile/"
       }

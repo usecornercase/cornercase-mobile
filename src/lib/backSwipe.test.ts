@@ -535,11 +535,12 @@ describe('backSwipes', () => {
   const below: Route = { name: 'home' }
 
   it.each([
-    ['on iOS over another screen', 'ios', below, true],
-    ['on iOS on the first screen', 'ios', null, false],
-    ['on Android', 'android', below, false],
-  ] as const)('%s', (_, on, under, swipes) => {
-    expect(backSwipes(on, under)).toBe(swipes)
+    ['on iOS over another screen', 'ios', below, false, true],
+    ['on iOS on the first screen', 'ios', null, false, false],
+    ['on Android', 'android', below, false, false],
+    ['on iOS in two panes, whose detail does not start at the edge', 'ios', below, true, false],
+  ] as const)('%s', (_, on, under, split, swipes) => {
+    expect(backSwipes(on, under, split)).toBe(swipes)
   })
 })
 

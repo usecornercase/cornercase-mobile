@@ -30,6 +30,9 @@ const composed = (typed: Typed) => typed.isComposing || typed.inputType.includes
 
 const carried = (typed: Typed) => typed.data ?? typed.dataTransfer?.getData('text/plain') ?? ''
 
+const typedAlone = (pressed: Keydown): InputEvent | null =>
+  !pressed.metaKey && !pressed.ctrlKey && [...pressed.key].length === 1 ? { text: pressed.key } : null
+
 const inserted = (typed: Typed): InputEvent | null => {
   if (typed.inputType === 'insertFromPaste') return pasted(carried(typed))
   if (!INSERTS.has(typed.inputType)) return null
@@ -48,11 +51,17 @@ export class Typing {
 
   keydown(pressed: Keydown): Step {
     this.#pressed = undefined
-    if (this.#composing || pressed.isComposing || pressed.keyCode === PROCESSED_BY_IME) return PASSED
+    if (this.#processing(pressed)) return PASSED
     const event = physical(pressed)
     if (event === null) return PASSED
     if ('key' in event) this.#pressed = event.key?.code
     return this.#sent([event])
+  }
+
+  stray(pressed: Keydown): Step {
+    if (this.#processing(pressed)) return PASSED
+    const event = physical(pressed) ?? typedAlone(pressed)
+    return event === null ? PASSED : this.#sent([event])
   }
 
   keyup() {
@@ -76,6 +85,10 @@ export class Typing {
   compositionend(data: string): Step {
     this.#composing = false
     return { send: data === '' ? [] : this.#ctrl.apply([{ text: data }]), prevent: false, restore: true }
+  }
+
+  #processing(pressed: Keydown) {
+    return this.#composing || pressed.isComposing || pressed.keyCode === PROCESSED_BY_IME
   }
 
   #sent(events: InputEvent[]): Step {

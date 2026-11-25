@@ -11,13 +11,14 @@
   import { label, place } from '../../lib/board'
   import { ShownCtrl } from '../../lib/terminal/ctrl.svelte'
   import { Fit } from '../../lib/terminal/fit.svelte'
-  import { Keyboard, whileClosed } from '../../lib/terminal/keyboard.svelte'
+  import { Keyboard, strays, whileClosed } from '../../lib/terminal/keyboard.svelte'
   import KeyRow from '../../lib/terminal/KeyRow.svelte'
   import { Opening } from '../../lib/terminal/opening'
   import { Pane, shows } from '../../lib/terminal/pane.svelte'
   import { Sending } from '../../lib/terminal/sending'
   import TerminalView from '../../lib/terminal/Terminal.svelte'
   import Typist from '../../lib/terminal/Typist.svelte'
+  import { layout } from '../../lib/layout.svelte'
   import Icon from '../../lib/ui/Icon.svelte'
   import NavBar from '../../lib/ui/NavBar.svelte'
 
@@ -54,6 +55,14 @@
   let typist: Typist | undefined
   const fitted = whileClosed(keyboard, (size: Size_Deserialize) => (wanted = size))
 
+  let screen = $state<HTMLElement | null>(null)
+
+  const stray = (event: KeyboardEvent) => {
+    if (strays(event, screen)) {
+      typist?.take(event)
+    }
+  }
+
   onMount(() => {
     const unlisten = events.terminalChanged.listen((event) => {
       if (shows(event.payload, machine, row.tab)) {
@@ -84,7 +93,10 @@
   })
 </script>
 
+<svelte:document onkeydown={stray} />
+
 <section
+  bind:this={screen}
   class="screen"
   class:keyboard={keyboard.covered}
   class:sliding={shift.x > 0}
@@ -100,10 +112,21 @@
         <p class="where">{row.tab_name} · {place(row)}</p>
       {/snippet}
       {#snippet right()}
+        {#if layout.wide}
+          <button
+            class="fit"
+            type="button"
+            aria-label="Full width"
+            aria-pressed={layout.full}
+            onclick={() => layout.toggleFull()}
+          >
+            <Icon name="maximize-2" />
+          </button>
+        {/if}
         <button
           class="fit"
           type="button"
-          aria-label="Fit to this phone"
+          aria-label="Fit to this screen"
           aria-pressed={fit.on}
           onclick={() => fit.toggle()}
         >
@@ -131,13 +154,13 @@
 <style>
   .screen {
     position: fixed;
-    inset: 0;
+    inset: 0 0 0 var(--pane-left);
     z-index: 1;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-      env(safe-area-inset-left);
+      var(--pane-safe-left);
     background: var(--glass);
   }
 
@@ -158,12 +181,17 @@
     height: 44px;
     padding: 0;
     border: 0;
+    border-radius: var(--radius-control);
     background: none;
     color: var(--soft);
   }
 
   .fit:active {
     color: var(--text);
+  }
+
+  :global(html.pointing) .fit:hover {
+    background: var(--hover);
   }
 
   .fit[aria-pressed='true'] {

@@ -43,7 +43,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} {title} {onback} topmost>
+  <NavBar {backTo} {title} {onback} topmost measure="column">
     {#snippet right()}
       {#if listed !== null}
         <p class="totals"><span class="plus">+{listed.added}</span> <span class="minus">−{listed.removed}</span></p>
@@ -87,7 +87,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter) 40px;
   }
 
   .totals {
@@ -126,6 +126,10 @@
   }
 
   .mode:active {
+    background: var(--hover);
+  }
+
+  :global(html.pointing) .mode:not([aria-pressed='true']):hover {
     background: var(--hover);
   }
 

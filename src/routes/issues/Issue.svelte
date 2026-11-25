@@ -40,7 +40,7 @@
 </script>
 
 <section class="screen">
-  <NavBar {backTo} title={issue.key} {onback} topmost />
+  <NavBar {backTo} title={issue.key} {onback} topmost measure="column" />
   {#if reading.kind === 'failed'}
     <div class="failed">
       <p class="note reason">{reading.reason}</p>
@@ -94,7 +94,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--inset-wide);
-    padding: var(--gap) var(--inset-wide) 40px;
+    padding: var(--gap) var(--gutter) 40px;
   }
 
   .head {

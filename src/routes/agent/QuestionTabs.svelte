@@ -67,6 +67,10 @@
     background: var(--selected);
   }
 
+  :global(html.pointing) button.chip:hover:not(:active) {
+    background: var(--hover);
+  }
+
   .open {
     border-color: var(--accent);
     background: var(--accent-soft);

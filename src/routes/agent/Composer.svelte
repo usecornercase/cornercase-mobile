@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Toast } from '../../lib/bindings'
   import type { Chat } from '../../lib/chat.svelte'
+  import { sendOnKey } from '../../lib/keys'
   import Icon from '../../lib/ui/Icon.svelte'
   import Spinner from '../../lib/ui/Spinner.svelte'
   import TextArea from '../../lib/ui/TextArea.svelte'
@@ -110,7 +111,7 @@
       <Icon name="keyboard" size={22} />
     </button>
     <div class="field">
-      <TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} />
+      <TextArea bare label="Answer" placeholder="Answer {agent}" bind:value={chat.draft} onkeydown={(event) => sendOnKey(event, chat)} />
     </div>
     <button
       class="send"
@@ -146,8 +147,8 @@
     max-height: calc(var(--seen, 100dvh) - env(safe-area-inset-top) - var(--below) - var(--over-composer));
     overflow-y: auto;
     overscroll-behavior: contain;
-    margin: 0 calc(-1 * var(--inset-wide)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom));
-    padding: var(--gap) var(--inset-wide) calc(var(--inset-wide) + env(safe-area-inset-bottom));
+    margin: 0 calc(-1 * var(--gutter)) calc(-1 * var(--inset-wide) - env(safe-area-inset-bottom));
+    padding: var(--gap) var(--gutter) calc(var(--inset-wide) + env(safe-area-inset-bottom));
     background: var(--glass);
     --over-composer: 132px;
   }
@@ -208,6 +209,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .icon:not(:disabled):hover {
+    background: var(--hover);
+  }
+
   .icon:disabled {
     color: var(--faint);
     opacity: 0.6;
@@ -231,5 +236,9 @@
 
   .lit:active .disc {
     background: var(--brand-hover);
+  }
+
+  :global(html.pointing) .lit:hover:not(:active) .disc {
+    filter: brightness(1.1);
   }
 </style>

@@ -3,6 +3,8 @@ import { render } from 'svelte/server'
 import { describe, expect, it } from 'vitest'
 import type { AgentClosing_Serialize as AgentClosing } from '../bindings'
 import { NOTHING_DELETED } from '../closeAgent.svelte'
+import { WIDE } from '../layout.svelte'
+import { atWidth } from '../layoutFakes'
 import Button from './Button.svelte'
 import CloseConfirm from './CloseConfirm.svelte'
 import CodeBox from './CodeBox.svelte'
@@ -71,7 +73,8 @@ describe('Glass as a sheet', () => {
 })
 
 describe('Sheet', () => {
-  const body = render(Sheet, { props: { label: 'Close it?', oncancel: () => {}, children: html('<p>inside</p>') } }).body
+  const sheet = () => render(Sheet, { props: { label: 'Close it?', oncancel: () => {}, children: html('<p>inside</p>') } }).body
+  const body = sheet()
 
   it('draws a named modal dialog of glass over a veil that is no target for VoiceOver', () => {
     expect(body).toMatch(
@@ -81,7 +84,47 @@ describe('Sheet', () => {
   })
 
   it('cancels on a tap outside it, on the veil', () => {
-    expect(flat(sheetSource)).toContain('aria-hidden="true" onclick={oncancel} in:veilIn out:veilOut></button>')
+    expect(flat(sheetSource)).toContain('aria-hidden="true" onclick={oncancel} in:veilIn out:veilOut ></button>')
+  })
+
+  it('cancels on Escape, from a hardware keyboard', () => {
+    expect(flat(sheetSource)).toContain(
+      "if (event.key === 'Escape') { event.preventDefault() event.stopPropagation() oncancel() }",
+    )
+    expect(flat(sheetSource)).toContain('onkeydown={keyed}')
+  })
+
+  it('keeps Tab among its own buttons, and gives the focus back to what had it once it closes', () => {
+    const source = flat(sheetSource)
+    expect(source).toContain("if (event.key === 'Tab') { trapped(event, event.currentTarget) }")
+    expect(source).toContain(
+      'const before = document.activeElement node.focus({ preventScroll: true }) return () => { if (before instanceof HTMLElement && before.isConnected) { before.focus({ preventScroll: true }) } }',
+    )
+  })
+
+  it('keeps Tab on the dialog itself while it has no button to take it, as while rechecking', () => {
+    expect(flat(sheetSource)).toContain(
+      'const next = cycled(items, now, event.shiftKey) ?? dialog event.preventDefault() next.focus()',
+    )
+  })
+
+  it('floats as a card with all its corners rounded in a wide window, over a clear layer that still cancels', () => {
+    const wide = atWidth(WIDE, sheet)
+    expect(wide).toMatch(
+      /<div class="layer svelte-[\w-]+ floating"><button class="scrim svelte-[\w-]+ clear" type="button" tabindex="-1" aria-hidden="true"><\/button> <div class="sheet svelte-[\w-]+ floating" role="dialog" aria-modal="true" aria-label="Close it\?" tabindex="-1"><div class="glass svelte-[\w-]+">/,
+    )
+    expect(body).not.toContain('floating')
+  })
+
+  it('places a floating card by its anchor on mount and on every resize, and rises in and fades out like a card', () => {
+    const source = flat(sheetSource)
+    expect(source).toContain('const floating = $derived(layout.wide)')
+    expect(source).toContain(
+      "const place = () => (spot = placed(from.getBoundingClientRect(), size, { width: innerWidth, height: innerHeight })) const scrolling = { capture: true, passive: true } place() addEventListener('resize', place) addEventListener('scroll', place, scrolling) return () => { removeEventListener('resize', place) removeEventListener('scroll', place, scrolling) }",
+    )
+    expect(source).toContain('const entering = (node: Element) => (floating ? riseIn(node) : sheetIn(node))')
+    expect(source).toContain('const leaving = (node: Element) => (floating ? fadeOut(node) : sheetOut(node))')
+    expect(source).toContain('<Glass sheet={!floating}>')
   })
 
   it('sits over the whole page, out of the screens that slide, and takes the focus', () => {
@@ -95,7 +138,12 @@ describe('Sheet', () => {
     '.scrim { position: absolute; inset: 0; padding: 0; border: 0; background: var(--veil); touch-action: none; }',
     '.sheet { position: relative; width: 100%; max-width: 520px; margin: 0 auto;',
     'padding: var(--inset-wide) var(--inset-wide) calc(env(safe-area-inset-bottom) + var(--inset-wide));',
-    '{@attach focused} in:sheetIn out:sheetOut>',
+    '{@attach focused} in:entering out:leaving >',
+    '.layer.floating { align-items: center; justify-content: center; }',
+    '.clear { background: transparent; }',
+    '.sheet.floating { width: min(360px, calc(100vw - 24px)); max-width: none; margin: 0; }',
+    '.anchored { position: fixed; }',
+    '.floating .body { padding: var(--inset-wide); }',
   ])('holds %s', (text) => {
     expect(flat(sheetSource)).toContain(text)
   })
@@ -147,7 +195,8 @@ describe('CloseConfirm', () => {
   })
 
   it('passes its buttons on to what it was given', () => {
-    expect(closeConfirmSource).toContain('<Sheet label={text.title} {oncancel}>')
+    expect(closeConfirmSource).toContain('<Sheet label={text.title} {anchor} {oncancel}>')
+    expect(closeConfirmSource).toContain('anchor = null,')
     expect(closeConfirmSource).toContain('onclick={oncancel}>Cancel</Button>')
     expect(closeConfirmSource).toContain('onclick={onconfirm}>Close</Button>')
   })
@@ -583,6 +632,7 @@ describe('Icon', () => {
     ['pencil', 'm15 5 4 4', ''],
     ['rotate-ccw', 'M3 3v5h5', ''],
     ['smartphone', 'M12 18h.01', '<rect x="5" y="2" width="14" height="20" rx="2"></rect>'],
+    ['maximize-2', 'M15 3h6v6', '<line x1="3" y1="21" x2="10" y2="14"></line>'],
     ['square-check', 'm9 12 2 2 4-4', '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'],
     ['square-terminal', 'm7 11 2-2-2-2', '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'],
     ['git-compare', 'M13 6h3a2 2 0 0 1 2 2v7', '<circle cx="18" cy="18" r="3"></circle>'],

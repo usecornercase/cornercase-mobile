@@ -6,7 +6,7 @@ import type {
   ConnectionView_Serialize,
 } from '../../lib/bindings'
 import { boardSearch } from '../../lib/boardSearch.svelte'
-import type { CloseAgent, Closing } from '../../lib/closeAgent.svelte'
+import type { Asker, CloseAgent, Closing } from '../../lib/closeAgent.svelte'
 import { closerAt as closingAt } from '../../lib/closeFakes'
 import { folds } from '../../lib/folds.svelte'
 import hiddenSource from '../../lib/ui/Hidden.svelte?raw'
@@ -53,7 +53,8 @@ const draw = (
   below = 0,
   machine: number | null = 1,
   closer: CloseAgent | null = null,
-) => render(Board, { props: { machine, agents, connection, closer, below, onopen: () => {}, onstart: () => {} } }).body
+  selected: number | null = null,
+) => render(Board, { props: { machine, agents, connection, closer, selected, below, onopen: () => {}, onstart: () => {} } }).body
 
 const BRANCH = [
   at(1, 'working', { title: 'Lead', rank_status: 'waiting' }),
@@ -141,11 +142,22 @@ describe('Board', () => {
     expect(draw([at(1, 'working')])).not.toContain('class="time')
   })
 
+  it('marks the row of the agent shown beside the board, and only it', () => {
+    const body = draw([at(1, 'idle', { title: 'first' }), at(2, 'idle', { title: 'second' })], CONNECTED, 0, 1, null, 2)
+    expect(body.match(/aria-current="true"/g)).toHaveLength(1)
+    expect(body).toMatch(/<button class="row svelte-[\w-]+" type="button" aria-current="true">(?:(?!<\/button>)[^])*second/)
+    expect(flat(rowSource)).toContain(".row[aria-current='true'] { background: var(--selected); }")
+  })
+
+  it('marks no row with nothing shown beside the board', () => {
+    expect(draw([at(1, 'idle')])).not.toContain('aria-current')
+  })
+
   it('makes each row a button of at least 44 px that reacts to a touch', () => {
     expect(draw([at(1, 'idle')])).toMatch(/<button class="row svelte-[\w-]+" type="button">/)
     expect(flat(rowSource)).toContain('min-height: 44px;')
     expect(flat(rowSource)).toContain(
-      '<button class="row" type="button" aria-busy={progress === null ? undefined : \'true\'} onclick={() => onopen(row.pane)} ontouchstart={() => {}} >',
+      '<button class="row" type="button" aria-current={current ? \'true\' : undefined} aria-busy={progress === null ? undefined : \'true\'} onclick={() => onopen(row.pane)} ontouchstart={() => {}} >',
     )
   })
 
@@ -507,7 +519,8 @@ describe('Closing an agent from the board', () => {
     warning: null,
   }
 
-  const closerAt = (kind: Closing['kind'] | 'idle', rows: Agent[] = BRANCH) => closingAt(kind, rows, PLAN)
+  const closerAt = (kind: Closing['kind'] | 'idle', rows: Agent[] = BRANCH, by: Asker = 'board') =>
+    closingAt(kind, rows, PLAN, by)
 
   const CLOSE = /<button class="close svelte-[\w-]+ eased" type="button" tabindex="-1" aria-hidden="true" style="width: 88px; --reveal: 0px;">\s*Close\s*<\/button>/g
 
@@ -523,7 +536,7 @@ describe('Closing an agent from the board', () => {
     expect(body.match(CLOSE)).toHaveLength(3)
     const source = flat(rowSource)
     expect(source).toContain("{#if gesture === 'swipe' && closable}")
-    expect(source).toContain("tabindex={open ? undefined : -1} aria-hidden={open ? undefined : 'true'} onclick={() => onclose(row)}")
+    expect(source).toContain("tabindex={open ? undefined : -1} aria-hidden={open ? undefined : 'true'} onclick={() => onclose(row, root)}")
     expect(source).toContain('background: var(--failed); color: var(--glass);')
     expect(source).toContain('clip-path: inset(0 0 0 calc(100% - var(--reveal)));')
   })
@@ -578,8 +591,13 @@ describe('Closing an agent from the board', () => {
     expect(body).toContain('Also stops 2 subagents')
     expect(body).toMatch(new RegExp(`<button class="button danger svelte-[\\w-]+( busy)?"${button}`))
     expect(flat(boardSource)).toContain(
-      "<CloseConfirm plan={asking.state.plan} label={label(asking.row, agents ?? [])} rechecking={asking.state.kind === 'rechecking'} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} />",
+      "<CloseConfirm plan={asking.state.plan} label={label(asking.row, agents ?? [])} rechecking={asking.state.kind === 'rechecking'} {anchor} oncancel={() => closer?.cancel(pane)} onconfirm={() => void closer?.confirm(pane)} />",
     )
+  })
+
+  it("shows no confirmation the agent's screen asked for, which that screen shows beside it in two panes", async () => {
+    const body = draw(BRANCH, CONNECTED, 0, 64, await closerAt('confirming', BRANCH, 'agent'))
+    expect(dialog(body)).toBeUndefined()
   })
 
   it('never slides the section headers or the search field', async () => {
@@ -608,11 +626,12 @@ describe('Closing an agent from the board', () => {
   it('swipes on iOS and holds on Android, with a light tap when the hold fires', () => {
     const source = flat(rowSource)
     expect(source).toContain("if (gesture === 'swipe') { return watchRowSwipe(node, {")
-    expect(source).toContain("if (gesture === 'hold') { return watchLongPress(node, () => onclose(row)) }")
+    expect(source).toContain("if (gesture === 'hold') { return watchLongPress(node, () => onclose(row, root)) }")
     expect(source).toContain('ondrag: (next) => (dragged = closable ? next : null), onsettle: (next) => onswipe(row.pane, closable && next),')
     const board = flat(boardSource)
     expect(board).toContain('const gesture = rowGesture(platform)')
-    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() void closer.ask(row)")
+    expect(board).toContain("if (gesture === 'hold') { void tap(haptics) } shut() anchor = from void closer.ask(row, 'board')")
+    expect(board).toContain('const ask = (row: Agent, from: HTMLElement | null) => {')
   })
 
   it('keeps one row open at most, shut by a touch elsewhere, a scroll, a list that moves it or a lost connection', () => {
@@ -631,6 +650,6 @@ describe('Closing an agent from the board', () => {
       'const opens = (row: Agent) => swiped?.pane === row.pane && closes(row) && closer?.offered(row) === true',
     )
     expect(board).toContain("if (swiped !== null && connection.state !== 'connected') { shut() }")
-    expect(flat(rowSource)).toContain("<div class=\"agent\" style:--depth={item.depth} data-open={open ? '' : undefined}>")
+    expect(flat(rowSource)).toContain("<div class=\"agent\" style:--depth={item.depth} data-open={open ? '' : undefined} bind:this={root}>")
   })
 })

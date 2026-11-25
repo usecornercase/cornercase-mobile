@@ -50,7 +50,7 @@ describe('Toasts', () => {
   })
 
   it.each([
-    'position: fixed; top: 0; left: 0; right: 0;',
+    'position: fixed; top: 0; left: var(--pane-left); right: 0;',
     'padding: calc(env(safe-area-inset-top) + var(--below) + var(--gap)) var(--inset-wide) 0; pointer-events: none;',
     'width: 100%; max-width: 520px; pointer-events: auto;',
     'width: 100%; min-height: 44px; padding: 10px 14px; border: 0; background: none;',
