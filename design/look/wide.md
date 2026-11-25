@@ -107,6 +107,21 @@ screens, the wide terminal, a hardware keyboard and a pointer, the close confirm
   `Close agent`. "Sheets and menus" of the task is this one: it is the app's only sheet, there are no menus, and the
   native `select`s already open as system popovers on an iPad.
 
+## Checked live
+
+- **iPad Pro 13-inch (M5) simulator, iOS 27.2, landscape (1376 pt), Xcode 27.2, Tauri 2.12.5, the demo, 2026-11-25**,
+  driven by the throwaway XCUITest that takes the store's iPad set: two panes, the board on the left with the chosen
+  row marked, the chat on the right in its 760 px column with no back button and its bar across the pane, a subagent's
+  row, the terminal in the detail with `Full width` and `Fit to this screen` in its bar, a diff and the files' tree at
+  the pane's width with their back buttons, and Start in its 520 px column. The iPad's floating shortcut bar, shown
+  while a field has the focus with a hardware keyboard, counts as a keyboard: the side followed the visual viewport,
+  and the page scrolled so that Start's sticky bar left the view until the field lost the focus, as a phone's keyboard
+  does on that screen.
+- **Not checked live yet**: portrait, Split View and Stage Manager crossing 720 px, the terminal's `Full width` and
+  `stty size`, typing with a hardware keyboard into the terminal and Cmd+Return in the chat, the pointer's hover,
+  the popover and `Esc`, an iPhone in landscape, and an Android tablet (`pixel_tablet` emulator). Unit tests cover
+  their logic; these need a person at the simulator or the device.
+
 ## Limits
 
 - Closing an agent from the board with a pointer: the swipe is touch-only and the long press Android's; `Close agent`

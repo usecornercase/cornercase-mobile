@@ -1,4 +1,4 @@
-Cornercase remote puts the coding agents you run in cornercase on your computer in your pocket. Follow them, answer them and start new work from your iPhone, while they keep running on the computer.
+Cornercase remote puts the coding agents you run in cornercase on your computer in your pocket. Follow them, answer them and start new work from your iPhone or iPad, while they keep running on the computer.
 
 It works with the cornercase app on your computer (Linux or macOS): you need cornercase 0.13.78 or later, and a phone that can reach that computer, on the same network or with both on your Tailscale network.
 
@@ -9,7 +9,7 @@ TALK TO AN AGENT
 Tap an agent to read its conversation and its last message, see what it is doing right now, and answer it. When it asks a question, its options show as buttons. A row of keys sends Enter, Tab, the arrows, a digit, Esc or Ctrl-C. Attach images from your photos: they are shrunk on the phone, without their location, and reach the agent with your next message.
 
 OPEN THE LIVE TERMINAL
-See the agent's terminal as it runs, fitted to your phone's width, and type into it with the keys a terminal needs.
+See the agent's terminal as it runs, fitted to your screen's width, and type into it with the keys a terminal needs.
 
 START NEW WORK
 Start an agent with a prompt, in a workspace that is already open or in a new worktree, with the agent, account and model you pick. Or start an agent or a flow on an issue from any tracker cornercase is connected to.
