@@ -123,6 +123,19 @@
     opacity: 0.7;
   }
 
+  :global(html.pointing) .primary:not(.resting):hover:not(:active),
+  :global(html.pointing) .danger:not(.resting):hover:not(:active) {
+    filter: brightness(1.1);
+  }
+
+  :global(html.pointing) .plain:not(.resting):hover:not(:active) {
+    background: var(--selected);
+  }
+
+  :global(html.pointing) .link:not(.resting):hover:not(:active) {
+    opacity: 0.85;
+  }
+
   .quiet {
     margin-left: calc(-1 * var(--inset));
     padding: 0 var(--inset);
@@ -132,6 +145,10 @@
 
   .quiet:not(.resting):active {
     border-color: transparent;
+  }
+
+  :global(html.pointing) .quiet:not(.resting):hover:not(:active) {
+    background: var(--hover);
   }
 
   .resting {

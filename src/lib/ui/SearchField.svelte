@@ -127,4 +127,8 @@
   .cancel:active {
     opacity: 0.5;
   }
+
+  :global(html.pointing) .cancel:hover:not(:active) {
+    opacity: 0.85;
+  }
 </style>

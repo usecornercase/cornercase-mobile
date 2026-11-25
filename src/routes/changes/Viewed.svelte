@@ -33,6 +33,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .check:hover {
+    background: var(--hover);
+  }
+
   .check[aria-pressed='true'] {
     color: var(--accent);
   }

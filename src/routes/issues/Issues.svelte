@@ -190,6 +190,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .segment:not([aria-pressed='true']):hover {
+    background: var(--hover);
+  }
+
   .segment[aria-pressed='true'] {
     background: var(--selected);
     color: var(--text);

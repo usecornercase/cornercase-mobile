@@ -54,6 +54,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .issue:hover {
+    background: var(--hover);
+  }
+
   .head,
   .meta {
     display: flex;

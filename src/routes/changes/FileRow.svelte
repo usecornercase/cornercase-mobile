@@ -68,6 +68,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .open:hover {
+    background: var(--hover);
+  }
+
   .viewed .open {
     color: var(--muted);
   }

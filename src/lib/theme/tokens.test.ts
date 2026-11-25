@@ -131,6 +131,19 @@ describe('base styles', () => {
     expect(Object.values(sources).filter((text) => text.includes('.spoken {'))).toHaveLength(1)
   })
 
+  it('shows the pointer cursor over what can be pressed, set once for every component', () => {
+    expect(base.replace(/\s+/g, ' ')).toContain(
+      ':where(button:not(:disabled), a, summary, select, label) { cursor: pointer; }',
+    )
+  })
+
+  it.each(
+    Object.entries(sources).filter(([path, text]) => text.includes(':active') && !path.endsWith('.ts')),
+  )('%s gives every pressed state a hover while a pointer is in use', (_, text) => {
+    expect(text).toContain(':global(html.pointing) ')
+    expect(text.match(/:global\(html\.pointing\)[^{]*:hover/g)?.length).toBeGreaterThan(0)
+  })
+
   it('moves the pane right of the side in two panes, on the root so the gutters follow', () => {
     const style = base.replace(/\s+/g, ' ')
     expect(style).toContain(

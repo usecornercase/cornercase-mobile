@@ -40,6 +40,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .tool:not(:disabled):hover {
+    background: var(--hover);
+  }
+
   .tool:disabled {
     color: var(--faint);
     background: none;

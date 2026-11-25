@@ -108,4 +108,8 @@
   .remove:active .disc {
     background: var(--hover);
   }
+
+  :global(html.pointing) .remove:hover .disc {
+    background: var(--hover);
+  }
 </style>

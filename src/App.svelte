@@ -27,6 +27,7 @@
   import { layout, splits } from './lib/layout.svelte'
   import { titleOf, type Lookups } from './lib/navigation'
   import { platform } from './lib/platform'
+  import { watchPointer } from './lib/pointer'
   import { chatOf, openedTerminal, Router, routeFor, type Route, type StartingIssue, type Where } from './lib/router.svelte'
   import type { Asker } from './lib/question.svelte'
   import { openScanner } from './lib/scanner.svelte'
@@ -181,6 +182,15 @@
     const root = document.documentElement
     root.classList.toggle('split', split)
     return () => root.classList.remove('split')
+  })
+
+  $effect(() => {
+    const root = document.documentElement
+    const stop = watchPointer(document, (on) => root.classList.toggle('pointing', on))
+    return () => {
+      stop()
+      root.classList.remove('pointing')
+    }
   })
 
   $effect(() => {

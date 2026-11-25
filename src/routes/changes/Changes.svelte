@@ -129,6 +129,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .mode:not([aria-pressed='true']):hover {
+    background: var(--hover);
+  }
+
   .mode[aria-pressed='true'] {
     background: var(--selected);
     color: var(--text);

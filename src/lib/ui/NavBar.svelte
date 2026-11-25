@@ -142,6 +142,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .back:hover {
+    background: var(--hover);
+  }
+
   .label {
     font-size: 17px;
     white-space: nowrap;

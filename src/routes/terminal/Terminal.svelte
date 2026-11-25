@@ -178,12 +178,17 @@
     height: 44px;
     padding: 0;
     border: 0;
+    border-radius: var(--radius-control);
     background: none;
     color: var(--soft);
   }
 
   .fit:active {
     color: var(--text);
+  }
+
+  :global(html.pointing) .fit:hover {
+    background: var(--hover);
   }
 
   .fit[aria-pressed='true'] {

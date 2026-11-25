@@ -53,6 +53,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .child:hover {
+    background: var(--hover);
+  }
+
   .names {
     display: flex;
     flex: 1;

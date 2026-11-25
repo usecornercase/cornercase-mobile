@@ -209,6 +209,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .icon:not(:disabled):hover {
+    background: var(--hover);
+  }
+
   .icon:disabled {
     color: var(--faint);
     opacity: 0.6;
@@ -232,5 +236,9 @@
 
   .lit:active .disc {
     background: var(--brand-hover);
+  }
+
+  :global(html.pointing) .lit:hover:not(:active) .disc {
+    filter: brightness(1.1);
   }
 </style>

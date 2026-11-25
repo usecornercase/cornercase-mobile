@@ -68,6 +68,10 @@
     color: var(--text);
   }
 
+  :global(html.pointing) .key:not(:disabled):hover {
+    background: var(--selected);
+  }
+
   .armed {
     border-color: var(--accent);
     background: var(--accent-soft);

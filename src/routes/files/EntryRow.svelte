@@ -97,6 +97,10 @@
     background: none;
   }
 
+  :global(html.pointing) .entry:not(.other):hover {
+    background: var(--hover);
+  }
+
   .hidden,
   .other {
     color: var(--muted);

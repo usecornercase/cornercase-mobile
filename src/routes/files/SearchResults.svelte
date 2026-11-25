@@ -71,6 +71,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .result:hover {
+    background: var(--hover);
+  }
+
   .icon {
     display: flex;
     flex: none;

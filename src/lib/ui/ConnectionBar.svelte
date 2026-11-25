@@ -126,6 +126,10 @@
     background: var(--hover);
   }
 
+  :global(html.pointing) .leave:hover {
+    background: var(--hover);
+  }
+
   .machines {
     display: flex;
     flex: none;
@@ -142,6 +146,10 @@
   }
 
   .machines:active {
+    background: var(--hover);
+  }
+
+  :global(html.pointing) .machines:hover {
     background: var(--hover);
   }
 </style>

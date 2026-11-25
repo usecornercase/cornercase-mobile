@@ -213,6 +213,12 @@ describe('App wiring', () => {
     )
   })
 
+  it('marks the root while a mouse, trackpad or pen is in use, and unmarks it when it stops watching', () => {
+    expect(source).toContain(
+      "$effect(() => { const root = document.documentElement const stop = watchPointer(document, (on) => root.classList.toggle('pointing', on)) return () => { stop() root.classList.remove('pointing') } })",
+    )
+  })
+
   it('keeps the bar and the board in the side in two panes, beside the terminal too, following the keyboard', () => {
     expect(source).toContain(
       '{#if split} <aside class="side" style:top={keyboard.covered ? `${keyboard.offset}px` : undefined} style:height={keyboard.covered ? `${keyboard.height}px` : undefined} > {@render bar()} {@render board()} </aside> {/if}',

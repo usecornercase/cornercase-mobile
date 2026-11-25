@@ -198,6 +198,11 @@
     background: var(--selected);
   }
 
+  :global(html.pointing) .row:not([aria-current='true']):hover:not(:active),
+  :global(html.pointing) .fold:hover:not(:active) {
+    background: var(--hover);
+  }
+
   .row {
     display: flex;
     flex: 1;
