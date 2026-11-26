@@ -19,6 +19,7 @@
     measure = 'full',
     edge = false,
     variant = platform,
+    bar = $bindable(null),
   }: {
     backTo: string | null
     title?: string
@@ -32,6 +33,7 @@
     measure?: 'full' | 'column' | 'form'
     edge?: boolean
     variant?: Platform
+    bar?: HTMLElement | null
   } = $props()
 
   let room = $state(0)
@@ -42,6 +44,7 @@
 </script>
 
 <div
+  bind:this={bar}
   class="bar {variant}"
   class:fixed
   class:topmost={fixed && topmost}

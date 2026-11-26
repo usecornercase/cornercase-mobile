@@ -1,20 +1,29 @@
 <script lang="ts">
   import { tick, untrack } from 'svelte'
   import { elapsed } from '../../lib/board'
-  import type { Chat } from '../../lib/chat.svelte'
+  import type { Chat, Outgoing } from '../../lib/chat.svelte'
   import { fromEnd, keepFromEnd } from '../../lib/fromEnd'
-  import { atEnd, readingNote, threadOf } from '../../lib/thread'
+  import type { AgentEntry } from '../../lib/history'
+  import { under } from '../../lib/reveal'
+  import { atEnd, landingAfter, lastAnswer, readingNote, sentAnew, startTop, threadOf, type Landing } from '../../lib/thread'
   import Markdown from '../../lib/ui/Markdown.svelte'
   import AgentLine from './AgentLine.svelte'
   import Sent from './Sent.svelte'
 
-  let { chat, now, boxed = false, drop = 0 }: { chat: Chat; now: number; boxed?: boolean; drop?: number } = $props()
+  let {
+    chat,
+    now,
+    boxed = false,
+    drop = 0,
+    bar = null,
+  }: { chat: Chat; now: number; boxed?: boolean; drop?: number; bar?: HTMLElement | null } = $props()
 
   const bubbles = $derived(threadOf(chat.conversation, chat.outgoing !== null))
   const note = $derived(readingNote(chat.reading))
 
   let box = $state<HTMLElement>()
   let tall = $state(0)
+  const messages: Record<number, HTMLElement | null> = {}
 
   const scroller = () => (boxed && box !== undefined ? box : document.documentElement)
 
@@ -28,7 +37,34 @@
     return atEnd(scrollTop, clientHeight, scrollHeight)
   }
 
+  const seenTop = () => {
+    const view = boxed && box !== undefined ? box.getBoundingClientRect() : { top: 0, bottom: innerHeight }
+    return under(view, bar?.getBoundingClientRect() ?? null).top
+  }
+
+  const toStart = (answer: AgentEntry) => {
+    const message = messages[answer.id]
+    if (message === undefined || message === null) {
+      toEnd()
+      return
+    }
+    const scrolling = scroller()
+    const { scrollTop, scrollHeight, clientHeight } = scrolling
+    const start = scrollTop + message.getBoundingClientRect().top - drop - seenTop()
+    scrolling.scrollTo({ top: startTop(scrollTop, scrollHeight - clientHeight, start) })
+  }
+
+  const land = (landing: Landing, answer: AgentEntry | null) => {
+    if (landing === 'end') {
+      void tick().then(toEnd)
+    } else if (landing === 'start' && answer !== null) {
+      void tick().then(() => toStart(answer))
+    }
+  }
+
   let drawn = false
+  let shownSend: Outgoing | null = null
+  let shownAnswer: AgentEntry | null = null
   let wasBoxed = untrack(() => boxed)
   let pinned = true
   let left = 0
@@ -40,11 +76,16 @@
 
   $effect.pre(() => {
     void chat.reading
-    void chat.outgoing
+    const outgoing = chat.outgoing
+    const answer = lastAnswer(chat.conversation)
     const was = drawn
     drawn = chat.conversation.length > 0
-    if (drawn && (!was || untrack(ending))) {
-      void tick().then(toEnd)
+    const sent = sentAnew(shownSend, outgoing)
+    const fresh = answer !== null && answer !== shownAnswer
+    shownSend = outgoing
+    shownAnswer = answer
+    if (drawn) {
+      land(landingAfter({ opened: !was, sent, pinned: untrack(ending), fresh }), answer)
     }
   })
 
@@ -65,7 +106,7 @@
         <Sent {entry} chat={live ? chat : null} />
       {:else if entry.kind === 'agent'}
         {@const written = elapsed(entry.written, now)}
-        <article class="message">
+        <article class="message" bind:this={messages[entry.id]}>
           {#if written !== ''}
             <p class="written">{written}</p>
           {/if}

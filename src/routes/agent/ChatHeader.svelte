@@ -25,6 +25,7 @@
     onfiles,
     onstart,
     onclose,
+    bar = $bindable(null),
   }: {
     row: AgentRow
     backTo: string | null
@@ -42,6 +43,7 @@
     onfiles: (workspace: number, title: string) => void
     onstart: (workspace: number) => void
     onclose: (from: HTMLElement | null) => void
+    bar?: HTMLElement | null
   } = $props()
 
   let scrolled = $state(0)
@@ -58,7 +60,7 @@
   })
 </script>
 
-<NavBar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}>
+<NavBar bind:bar {backTo} {onback} {below} {topmost} {rooted} measure="column" edge={compact}>
   {#snippet center()}
     <div class="short" class:compact aria-hidden="true">
       <StatusDot status={row.status} />

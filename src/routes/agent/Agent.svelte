@@ -89,6 +89,7 @@
   const closable = $derived(row !== null && connection.state === 'connected' && closer?.offered(row) === true)
 
   let anchor = $state<HTMLElement | null>(null)
+  let bar = $state<HTMLElement | null>(null)
 
   const ask = (from: HTMLElement | null) => {
     if (row !== null && closable) {
@@ -120,6 +121,7 @@
     {/if}
   {:else}
     <ChatHeader
+      bind:bar
       {row}
       agents={agents ?? []}
       {backTo}
@@ -140,7 +142,7 @@
     {#key row.pane}
       <Subagents {row} agents={agents ?? []} {onopen} />
     {/key}
-    <Thread {chat} {now} boxed={seen !== null} {drop} />
+    <Thread {chat} {now} boxed={seen !== null} {drop} {bar} />
     <Composer {chat} agent={row.agent} {below} {seen} {drop} {onfailed} {ontoast} />
     {#if seen !== null}
       <div class="floor" style:transform={drop > 0 ? `translateY(${drop}px)` : undefined}></div>

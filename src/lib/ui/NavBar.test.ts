@@ -35,6 +35,11 @@ const bar = ({ backTo = null, center, right, ...props }: Props) =>
 const flat = (text: string) => text.replace(/\s+/g, ' ')
 
 describe('NavBar', () => {
+  it('hands out its element, for what is measured under it', () => {
+    expect(barSource).toContain('bar = $bindable(null),')
+    expect(flat(barSource)).toContain('<div bind:this={bar} class="bar {variant}"')
+  })
+
   it.each<[string, string | null, string]>([
     ['the title below', 'Agents', 'Back to Agents'],
     ['no title below', null, 'Back'],

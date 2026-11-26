@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import type { AgentRow_Serialize as AgentRow, HistoryEntry_Serialize as Entry } from './bindings'
-import type { Reading } from './chat.svelte'
+import type { Outgoing, Reading } from './chat.svelte'
 import {
   AT_END_MARGIN,
   STALL_MS,
   agentLine,
   atEnd,
   compactHeader,
+  landingAfter,
+  lastAnswer,
   readingNote,
   sendNews,
+  sentAnew,
   shownState,
+  startTop,
   threadOf,
+  type Change,
+  type Landing,
 } from './thread'
 
 const NOW = Date.parse('2026-11-09T21:30:00.000Z')
@@ -240,6 +246,77 @@ describe('atEnd', () => {
   it('takes another margin', () => {
     expect(atEnd(1990, 800, 2800, 10)).toBe(true)
     expect(atEnd(1989, 800, 2800, 10)).toBe(false)
+  })
+})
+
+const sending = (state: Outgoing['state']): Outgoing => ({ text: 'go on', chips: [], state, reason: null })
+
+describe('sentAnew', () => {
+  it('takes a new send for one', () => {
+    expect(sentAnew(null, sending('sending'))).toBe(true)
+  })
+
+  it('takes a Retry, a new send after a failed one, for one', () => {
+    expect(sentAnew(sending('failed'), sending('sending'))).toBe(true)
+  })
+
+  it('takes the same send seen again for none', () => {
+    const same = sending('sending')
+    expect(sentAnew(same, same)).toBe(false)
+  })
+
+  it.each<[string, Outgoing | null, Outgoing | null]>([
+    ['sending to sent', sending('sending'), sending('sent')],
+    ['sending to failed', sending('sending'), sending('failed')],
+    ['failed to nothing, an Edit', sending('failed'), null],
+    ['nothing to nothing', null, null],
+  ])('takes %s for no send', (_, before, after) => {
+    expect(sentAnew(before, after)).toBe(false)
+  })
+})
+
+describe('lastAnswer', () => {
+  it("gives the agent's message when it is last", () => {
+    const answer = agent(3, 'Fixed.')
+    expect(lastAnswer([you(2, 'fix it'), answer])).toBe(answer)
+  })
+
+  it.each<[string, Entry[]]>([
+    ['your bubble', [agent(1, 'Which file?'), you(2, 'thread.ts')]],
+    ['a gap', [gap(0)]],
+    ['nothing', []],
+  ])('gives none when %s is last', (_, conversation) => {
+    expect(lastAnswer(conversation)).toBeNull()
+  })
+})
+
+describe('landingAfter', () => {
+  const change = (fields: Partial<Change>): Change => ({ opened: false, sent: false, pinned: false, fresh: false, ...fields })
+
+  it.each<[string, Partial<Change>, Landing]>([
+    ['opening, even away from the end', { opened: true, fresh: true }, 'end'],
+    ['a send, even away from the end', { sent: true }, 'end'],
+    ['a send with a new answer at the end', { sent: true, pinned: true, fresh: true }, 'end'],
+    ['a new answer away from the end', { fresh: true }, 'stay'],
+    ['any other change away from the end', {}, 'stay'],
+    ['a new answer at the end', { pinned: true, fresh: true }, 'start'],
+    ['any other change at the end', { pinned: true }, 'end'],
+  ])('lands after %s', (_, fields, landing) => {
+    expect(landingAfter(change(fields))).toBe(landing)
+  })
+})
+
+describe('startTop', () => {
+  it("goes to a long message's start below", () => {
+    expect(startTop(1000, 5000, 1600)).toBe(1600)
+  })
+
+  it('stops at the end when a short message starts past it', () => {
+    expect(startTop(1000, 1200, 1600)).toBe(1200)
+  })
+
+  it('never goes back up to a start above', () => {
+    expect(startTop(1000, 5000, 400)).toBe(1000)
   })
 })
 
